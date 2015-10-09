@@ -1,0 +1,42 @@
+html {
+  background: #444;
+}
+
+body {
+  background: #444;
+}
+
+.room {
+  width: 75%;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.row {
+  clear: both;
+}
+
+.pixel {
+  border: 2px solid #222;
+  float: left;
+}
+
+.floor {
+  background: #ccc;
+}
+
+.dark-floor {
+  background: #aaa;
+}
+
+.wall {
+  background: #222;
+}
+
+.torch {
+  transition: background 0.2s /*, transform 1s; */
+}
+
+.monster {
+  background: green;
+}
