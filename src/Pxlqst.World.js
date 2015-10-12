@@ -9,13 +9,16 @@ Pxlqst.World = Class.extend({
 
     world.resize = function() {
 
-      $('.viewport').width( $(document).width() * 0.75)
-                    .height($(document).width() * 0.75);
+      if ($(window).width() < $(window).height()) var smallestDimension = $(window).width()
+      else                                        var smallestDimension = $(window).height()
+
+      $('.viewport').width( smallestDimension * 0.85)
+                    .height(smallestDimension * 0.85);
 
       world.roomWidth = $('.viewport').width();
 
-      $('.tile').width(  world.roomWidth / 16 - 8) // account for border-width
-                .height( world.roomWidth / 16 - 8);
+      $('.tile').width(  world.roomWidth / 16 - 4) // account for border-width
+                .height( world.roomWidth / 16 - 4);
 
     }
 
@@ -44,6 +47,8 @@ Pxlqst.World = Class.extend({
 
 
     world.resize();
+
+    $(window).on('resize', world.resize);
 
     return world;
 
