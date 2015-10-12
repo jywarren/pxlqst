@@ -5,7 +5,7 @@ Pxlqst.Tile = Class.extend({
     var tile = this;
 
     tile.index = (y * room.tilesWide + x);
-    tile.objects = [];
+    tile.things = [];
     tile.x = x;
     tile.y = y;
     tile.room = room;
@@ -14,43 +14,107 @@ Pxlqst.Tile = Class.extend({
     tile.el = $('.tile-' + tile.index);
 
 
-    // create a new object and add it to this tile's objects
-    tile.create = function(object) {
+    // does the tile contain anything of given class?
+    // (could use .is for materials?)
+    tile.has = function(classname) {
 
-      object = new object(tile.x, tile.y, tile.room);
+      var hasThing = false;
 
-      tile.add(object);
+      tile.things.forEach(function(thing) {
 
-      return object;
+        if (thing instanceof classname) hasThing = thing;
+
+      });
+
+      return hasThing;
 
     }
 
 
-    // add object to this tile's objects
-    tile.add = function(object) {
+    // return northward tile
+    tile.north = function() {
 
-      tile.objects.push(object);
+      return room.tile(tile.x, tile.y - 1);
+
+    }
+
+
+    // return southward tile
+    tile.south = function() {
+
+      return room.tile(tile.x, tile.y + 1);
+
+    }
+
+
+    // return westward tile
+    tile.west = function() {
+
+      return room.tile(tile.x - 1, tile.y);
+
+    }
+
+
+    // return eastward tile
+    tile.east = function() {
+
+      return room.tile(tile.x + 1, tile.y);
+
+    }
+
+
+    // does a neighboring tile contain anything of given class?
+    tile.nextTo = function(classname) {
+
+      var isNextTo = false;
+
+      if (tile.north() && tile.north().has(classname)) isNextTo = true;
+      if (tile.south() && tile.south().has(classname)) isNextTo = true;
+      if (tile.east()  && tile.east().has(classname)) isNextTo = true;
+      if (tile.west()  && tile.west().has(classname)) isNextTo = true;
+
+      return isNextTo;
+
+    }
+
+
+    // create a new thing and add it to this tile's things
+    tile.create = function(thing) {
+
+      thing = new thing(tile.x, tile.y, tile.room);
+
+      tile.add(thing);
+
+      return thing;
+
+    }
+
+
+    // add thing to this tile's things
+    tile.add = function(thing) {
+
+      tile.things.push(thing);
 
       // set appearance
-      tile.el.addClass(object.cssClass);
+      tile.el.addClass(thing.cssClass);
 
-      return object;
+      return thing;
 
     }
 
 
-    // remove object from this tile's objects
-    tile.remove = function(object) {
+    // remove thing from this tile's things
+    tile.remove = function(thing) {
 
-      tile.objects.splice(tile.objects.indexOf(object), 1);
+      tile.things.splice(tile.things.indexOf(thing), 1);
 
       // unset appearance
-      tile.el.removeClass(object.cssClass);
+      tile.el.removeClass(thing.cssClass);
 
       // have to remove all manually applied colors etc;
       // 
 
-      return object;
+      return thing;
 
     }
 

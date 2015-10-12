@@ -163,6 +163,14 @@ Pxlqst.Thing = Class.extend({
     object.y = y;
     object.room = room;
 
+
+    object.tile = function() {
+
+      return room.tile(object.x, object.y);
+
+    }
+
+
     return object;
 
   }
@@ -176,7 +184,7 @@ Pxlqst.Tile = Class.extend({
     var tile = this;
 
     tile.index = (y * room.tilesWide + x);
-    tile.objects = [];
+    tile.things = [];
     tile.x = x;
     tile.y = y;
     tile.room = room;
@@ -185,43 +193,107 @@ Pxlqst.Tile = Class.extend({
     tile.el = $('.tile-' + tile.index);
 
 
-    // create a new object and add it to this tile's objects
-    tile.create = function(object) {
+    // does the tile contain anything of given class?
+    // (could use .is for materials?)
+    tile.has = function(classname) {
 
-      object = new object(tile.x, tile.y, tile.room);
+      var hasThing = false;
 
-      tile.add(object);
+      tile.things.forEach(function(thing) {
 
-      return object;
+        if (thing instanceof classname) hasThing = thing;
+
+      });
+
+      return hasThing;
 
     }
 
 
-    // add object to this tile's objects
-    tile.add = function(object) {
+    // return northward tile
+    tile.north = function() {
 
-      tile.objects.push(object);
+      return room.tile(tile.x, tile.y - 1);
+
+    }
+
+
+    // return southward tile
+    tile.south = function() {
+
+      return room.tile(tile.x, tile.y + 1);
+
+    }
+
+
+    // return westward tile
+    tile.west = function() {
+
+      return room.tile(tile.x - 1, tile.y);
+
+    }
+
+
+    // return eastward tile
+    tile.east = function() {
+
+      return room.tile(tile.x + 1, tile.y);
+
+    }
+
+
+    // does a neighboring tile contain anything of given class?
+    tile.nextTo = function(classname) {
+
+      var isNextTo = false;
+
+      if (tile.north() && tile.north().has(classname)) isNextTo = true;
+      if (tile.south() && tile.south().has(classname)) isNextTo = true;
+      if (tile.east()  && tile.east().has(classname)) isNextTo = true;
+      if (tile.west()  && tile.west().has(classname)) isNextTo = true;
+
+      return isNextTo;
+
+    }
+
+
+    // create a new thing and add it to this tile's things
+    tile.create = function(thing) {
+
+      thing = new thing(tile.x, tile.y, tile.room);
+
+      tile.add(thing);
+
+      return thing;
+
+    }
+
+
+    // add thing to this tile's things
+    tile.add = function(thing) {
+
+      tile.things.push(thing);
 
       // set appearance
-      tile.el.addClass(object.cssClass);
+      tile.el.addClass(thing.cssClass);
 
-      return object;
+      return thing;
 
     }
 
 
-    // remove object from this tile's objects
-    tile.remove = function(object) {
+    // remove thing from this tile's things
+    tile.remove = function(thing) {
 
-      tile.objects.splice(tile.objects.indexOf(object), 1);
+      tile.things.splice(tile.things.indexOf(thing), 1);
 
       // unset appearance
-      tile.el.removeClass(object.cssClass);
+      tile.el.removeClass(thing.cssClass);
 
       // have to remove all manually applied colors etc;
       // 
 
-      return object;
+      return thing;
 
     }
 
@@ -253,13 +325,16 @@ Pxlqst.World = Class.extend({
 
     world.resize = function() {
 
-      $('.viewport').width( $(document).width() * 0.75)
-                    .height($(document).width() * 0.75);
+      if ($(window).width() < $(window).height()) var smallestDimension = $(window).width()
+      else                                        var smallestDimension = $(window).height()
+
+      $('.viewport').width( smallestDimension * 0.85)
+                    .height(smallestDimension * 0.85);
 
       world.roomWidth = $('.viewport').width();
 
-      $('.tile').width(  world.roomWidth / 16 - 8) // account for border-width
-                .height( world.roomWidth / 16 - 8);
+      $('.tile').width(  world.roomWidth / 16 - 4) // account for border-width
+                .height( world.roomWidth / 16 - 4);
 
     }
 
@@ -289,51 +364,60 @@ Pxlqst.World = Class.extend({
 
     world.resize();
 
+    $(window).on('resize', world.resize);
+
     return world;
 
   }
 
 });
 
-Pxlqst.Monster = Pxlqst.Thing.extend({
+Pxlqst.Actor = Pxlqst.Thing.extend({
 
   init: function(x, y, room) {
 
     // basic setup
     this._super(x, y, room);
 
-    var monster = this;
-
-    monster.cssClass = 'monster';
+    var actor = this;
 
 
-    monster.wander = function() {
+    // keeps x, y in bounds
+    actor.confineToRoom = function(_x, _y) {
 
-      var newx = monster.x + parseInt(Math.random() * 3) - 1,
-          newy = monster.y + parseInt(Math.random() * 3) - 1;
+      if (_x < 0) _x = 0;
+      if (_y < 0) _y = 0;
+      if (_x > room.tilesWide) _x = room.tilesWide;
+      if (_y > room.tilesWide) _y = room.tilesWide;
 
-      // stay in bounds; we could abstract this to Pxlqst.Things or Pxlqst.Actors
-      if (newx < 0) newx = 0;
-      if (newy < 0) newy = 0;
-      if (newx > room.tilesWide) newy = room.tilesWide;
-      if (newy > room.tilesWide) newy = room.tilesWide;
-
-      if (!(room.tile(newx, newy).objects[0] instanceof Pxlqst.Wall)) {
-
-        room.tile(monster.x, monster.y).remove(monster);
-
-        room.tile(newx, newy).add(monster);
-        monster.x = newx;
-        monster.y = newy;  
-
-      }
- 
     }
 
 
-    monster.interval = setInterval(monster.wander, 2000);
+    return actor;
 
-    return monster;
+  }
+
+});
+
+Pxlqst.Item = Pxlqst.Thing.extend({
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var item = this;
+
+
+    // keeps x, y in bounds
+    item.take = function(_x, _y) {
+
+      // user.inventory.add(item);
+
+    }
+
+
+    return item;
 
   }
 
@@ -380,6 +464,115 @@ Pxlqst.Wall = Pxlqst.Thing.extend({
     // walls don't do anything. 
 
     return this;
+
+  }
+
+});
+
+Pxlqst.Monster = Pxlqst.Actor.extend({
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var monster = this;
+
+    monster.cssClass = 'monster';
+
+
+    monster.wander = function() {
+
+      var newx = monster.x, newy = monster.y;
+
+      // up/down OR left/right
+      if (Math.random() > 0.5) newx = monster.x + parseInt(Math.random() * 3) - 1;
+      else                     newy = monster.y + parseInt(Math.random() * 3) - 1;
+
+      monster.confineToRoom(newx, newy);
+
+      if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+
+        room.tile(monster.x, monster.y).remove(monster);
+
+        room.tile(newx, newy).add(monster);
+        monster.x = newx;
+        monster.y = newy;  
+
+      }
+ 
+    }
+
+
+    monster.interval = setInterval(monster.wander, 2000);
+
+    return monster;
+
+  }
+
+});
+
+Pxlqst.Rat = Pxlqst.Actor.extend({
+
+  running: false,
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var rat = this;
+
+    rat.cssClass = 'rat';
+
+
+    rat.wander = function() {
+
+      var newx = rat.x, newy = rat.y;
+
+      // if not near a wall, run!
+      if (!rat.tile().nextTo(Pxlqst.Wall)) {
+
+        // run stupidly to nearest exterior room wall
+        if      (rat.x < room.tilesWide / 2) newx -= 1;
+        else if (rat.x > room.tilesWide / 2) newx += 1;
+        else if (rat.y < room.tilesWide / 2) newy -= 1;
+        else if (rat.y > room.tilesWide / 2) newy += 1;
+
+      // rats are tentative!
+      } else if (Math.random() > 0.2 || rat.running) {
+
+        if (Math.random() > 0.3) rat.running = !rat.running;
+ 
+        // run along wall
+        if      (rat.tile().north().has(Pxlqst.Wall)) newx += parseInt(Math.random() * 3) - 1;
+        else if (rat.tile().south().has(Pxlqst.Wall)) newx += parseInt(Math.random() * 3) - 1;
+        else if (rat.tile().east().has(Pxlqst.Wall))  newy += parseInt(Math.random() * 3) - 1;
+        else if (rat.tile().west().has(Pxlqst.Wall))  newy += parseInt(Math.random() * 3) - 1;
+ 
+
+      }
+
+      // actually move:
+      rat.confineToRoom(newx, newy);
+
+      // don't go through walls (do this in Actor ? but ghosts!)
+      if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+
+        rat.tile().remove(rat);
+
+        room.tile(newx, newy).add(rat);
+        rat.x = newx;
+        rat.y = newy;  
+
+      }
+ 
+    }
+
+
+    rat.interval = setInterval(rat.wander, 500);
+
+    return rat;
 
   }
 
