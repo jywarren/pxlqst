@@ -18,9 +18,40 @@
 
   <body>
 
-    <div class="room">
-
+    <div class="viewport">
     </div>
+
+    <script>
+
+      var world;
+
+      window.addEventListener('load', function(e) {
+
+
+        world = new Pxlqst.World();
+
+        var room = world.addRoom();
+
+        world.goTo(room);
+        world.resize();
+
+        // doors!
+        // this is wrong; we should separate state from display: create Wall object 
+        room.tile( 0, 8).remove(room.tile( 0, 8).objects[0]);
+        room.tile(11, 0).remove(room.tile(11, 0).objects[0]);
+  
+  
+        // monsters!
+        room.tile(12, 3).create(Pxlqst.Monster);
+  
+  
+        // torch!
+        room.tile( 4, 8).create(Pxlqst.Torch);
+
+
+      });
+
+    </script>
 
   </body>
 </html>
