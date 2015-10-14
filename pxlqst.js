@@ -193,6 +193,11 @@ Pxlqst.Tile = Class.extend({
     tile.el = $('.tile-' + tile.index);
 
 
+    tile.el.click(function(e) {
+      room.world.you.walkToward(tile.x, tile.y);
+    });
+
+
     // does the tile contain anything of given class?
     // (could use .is for materials?)
     tile.has = function(classname) {
@@ -272,6 +277,9 @@ Pxlqst.Tile = Class.extend({
     // add thing to this tile's things
     tile.add = function(thing) {
 
+      thing.x = tile.x;
+      thing.y = tile.y;
+
       tile.things.push(thing);
 
       // set appearance
@@ -301,6 +309,7 @@ Pxlqst.Tile = Class.extend({
     // remove all classes, start over
     tile.reset = function() {
 
+      tile.el.attr('style', '');
       if (Math.random() > 0.5) tile.el.addClass('dark-floor');
 
     }
@@ -322,6 +331,7 @@ Pxlqst.World = Class.extend({
   init: function() {
 
     var world = this;
+
 
     world.resize = function() {
 
@@ -362,6 +372,12 @@ Pxlqst.World = Class.extend({
     }
 
 
+    world.goTo(world.addRoom());
+
+    // add a "choose a profession" intro
+    world.you = world.currentRoom.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.currentRoom));
+
+
     world.resize();
 
     $(window).on('resize', world.resize);
@@ -393,7 +409,27 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
     }
 
 
+    actor.goTo = function(_x, _y) {
+      
+          actor.tile().remove(actor);
+       
+          room.tile(_x, _y).add(actor);
+
+    }
+
+
     return actor;
+
+  }
+
+});
+
+Pxlqst.Enemy = Pxlqst.Actor.extend({
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
 
   }
 
@@ -423,35 +459,6 @@ Pxlqst.Item = Pxlqst.Thing.extend({
 
 });
 
-Pxlqst.Torch = Pxlqst.Thing.extend({
-
-  cssClass: 'torch',
-
-  // Flickering torches!
-  flickers: ['yellow', 'orange', '#f84', '#fa2', 'red'],
-
-  init: function(x, y, room) {
-
-    // basic setup
-    this._super(x, y, room);
-
-    var torch = this;
-
-    torch.flicker = function() {
-
-      torch.room.tile(x, y).el.css('background', torch.flickers[parseInt(Math.random() * torch.flickers.length)]);
-   
-    }
-
-
-    torch.interval = setInterval(torch.flicker, 100);
-
-    return torch;
-
-  }
-
-});
-
 Pxlqst.Wall = Pxlqst.Thing.extend({
 
   cssClass: 'wall',
@@ -469,7 +476,9 @@ Pxlqst.Wall = Pxlqst.Thing.extend({
 
 });
 
-Pxlqst.Monster = Pxlqst.Actor.extend({
+Pxlqst.Monster = Pxlqst.Enemy.extend({
+
+  enemy: true,
 
   init: function(x, y, room) {
 
@@ -493,11 +502,7 @@ Pxlqst.Monster = Pxlqst.Actor.extend({
 
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        room.tile(monster.x, monster.y).remove(monster);
-
-        room.tile(newx, newy).add(monster);
-        monster.x = newx;
-        monster.y = newy;  
+        monster.goTo(newx, newy);  
 
       }
  
@@ -512,7 +517,7 @@ Pxlqst.Monster = Pxlqst.Actor.extend({
 
 });
 
-Pxlqst.Rat = Pxlqst.Actor.extend({
+Pxlqst.Rat = Pxlqst.Enemy.extend({
 
   running: false,
 
@@ -559,11 +564,7 @@ Pxlqst.Rat = Pxlqst.Actor.extend({
       // don't go through walls (do this in Actor ? but ghosts!)
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        rat.tile().remove(rat);
-
-        room.tile(newx, newy).add(rat);
-        rat.x = newx;
-        rat.y = newy;  
+        rat.goTo(newx, newy);  
 
       }
  
@@ -573,6 +574,103 @@ Pxlqst.Rat = Pxlqst.Actor.extend({
     rat.interval = setInterval(rat.wander, 500);
 
     return rat;
+
+  }
+
+});
+
+Pxlqst.You = Pxlqst.Actor.extend({
+
+  /*
+    <profession> is like 'magician' and stuff.
+  */
+  init: function(x, y, profession, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var you = this;
+
+    you.cssClass = profession;
+
+
+    you.walkToward = function(x, y) {
+
+      you.destination = {x: x, y: y};
+
+    }
+
+
+    you.walk = function() {
+
+      var newx = you.x, newy = you.y;
+
+      if (you.destination) {
+
+        if (Math.abs(you.destination.x - you.x) > Math.abs(you.destination.y - you.y)) {
+          if (you.destination.x > you.x) newx = you.x + 1;
+          else                           newx = you.x - 1;
+        } else {
+          if (you.destination.y > you.y) newy = you.y + 1;
+          else                           newy = you.y - 1;
+        }
+
+        // don't go through walls (do this in Actor ? but ghosts!)
+        if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+
+          you.goTo(newx, newy);
+ 
+        }
+
+        if (you.x == you.destination.x && you.y == you.destination.y) you.destination = undefined;
+
+        // take hit
+        if (room.tile(newx, newy).has(Pxlqst.Enemy)) {
+
+          you.tile().el.addClass('hit');
+
+          setTimeout(function() {
+
+            you.tile().el.removeClass('hit');
+
+          }, 100);
+
+        }
+
+      }
+
+    }
+
+    you.interval = setInterval(you.walk, 500);
+
+  }
+
+});
+
+Pxlqst.Torch = Pxlqst.Thing.extend({
+
+  cssClass: 'torch',
+
+  // Flickering torches!
+  flickers: ['yellow', 'orange', '#f84', '#fa2', 'red'],
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var torch = this;
+
+    torch.flicker = function() {
+
+      torch.room.tile(x, y).el.css('background', torch.flickers[parseInt(Math.random() * torch.flickers.length)]);
+   
+    }
+
+
+    torch.interval = setInterval(torch.flicker, 100);
+
+    return torch;
 
   }
 

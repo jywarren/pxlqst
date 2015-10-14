@@ -1,4 +1,4 @@
-Pxlqst.Rat = Pxlqst.Actor.extend({
+Pxlqst.Rat = Pxlqst.Enemy.extend({
 
   running: false,
 
@@ -45,11 +45,7 @@ Pxlqst.Rat = Pxlqst.Actor.extend({
       // don't go through walls (do this in Actor ? but ghosts!)
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        rat.tile().remove(rat);
-
-        room.tile(newx, newy).add(rat);
-        rat.x = newx;
-        rat.y = newy;  
+        rat.goTo(newx, newy);  
 
       }
  

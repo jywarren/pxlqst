@@ -36,6 +36,14 @@ body {
   background: #222;
 }
 
+.thief {
+  background: #556;
+}
+
+.hit {
+  background: red;
+}
+
 .torch {
   transition: background 0.2s /*, transform 1s; */
 }

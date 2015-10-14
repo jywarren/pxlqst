@@ -19,6 +19,15 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
     }
 
 
+    actor.goTo = function(_x, _y) {
+      
+          actor.tile().remove(actor);
+       
+          room.tile(_x, _y).add(actor);
+
+    }
+
+
     return actor;
 
   }

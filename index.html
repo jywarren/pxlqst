@@ -30,10 +30,7 @@
 
         world = new Pxlqst.World();
 
-        var room = world.addRoom();
-
-        world.goTo(room);
-        world.resize();
+        var room = world.currentRoom;
 
         // doors!
         // this is wrong; we should separate state from display: create Wall thing 

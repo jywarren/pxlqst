@@ -1,4 +1,6 @@
-Pxlqst.Monster = Pxlqst.Actor.extend({
+Pxlqst.Monster = Pxlqst.Enemy.extend({
+
+  enemy: true,
 
   init: function(x, y, room) {
 
@@ -22,11 +24,7 @@ Pxlqst.Monster = Pxlqst.Actor.extend({
 
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        room.tile(monster.x, monster.y).remove(monster);
-
-        room.tile(newx, newy).add(monster);
-        monster.x = newx;
-        monster.y = newy;  
+        monster.goTo(newx, newy);  
 
       }
  
