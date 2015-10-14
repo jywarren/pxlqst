@@ -7,6 +7,7 @@ Pxlqst.World = Class.extend({
 
     var world = this;
 
+
     world.resize = function() {
 
       if ($(window).width() < $(window).height()) var smallestDimension = $(window).width()
@@ -44,6 +45,12 @@ Pxlqst.World = Class.extend({
       return room;
 
     }
+
+
+    world.goTo(world.addRoom());
+
+    // add a "choose a profession" intro
+    world.you = world.currentRoom.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.currentRoom));
 
 
     world.resize();

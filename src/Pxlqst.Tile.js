@@ -14,6 +14,11 @@ Pxlqst.Tile = Class.extend({
     tile.el = $('.tile-' + tile.index);
 
 
+    tile.el.click(function(e) {
+      room.world.you.walkToward(tile.x, tile.y);
+    });
+
+
     // does the tile contain anything of given class?
     // (could use .is for materials?)
     tile.has = function(classname) {
@@ -93,6 +98,9 @@ Pxlqst.Tile = Class.extend({
     // add thing to this tile's things
     tile.add = function(thing) {
 
+      thing.x = tile.x;
+      thing.y = tile.y;
+
       tile.things.push(thing);
 
       // set appearance
@@ -122,6 +130,7 @@ Pxlqst.Tile = Class.extend({
     // remove all classes, start over
     tile.reset = function() {
 
+      tile.el.attr('style', '');
       if (Math.random() > 0.5) tile.el.addClass('dark-floor');
 
     }
