@@ -8,7 +8,7 @@ body {
 
 
 .viewport {
-  margin: 80px auto;
+  margin: 80px auto 10px;
   overflow: hidden;
 }
 
@@ -22,6 +22,18 @@ body {
 .tile {
   border: 2px solid #222;
   float: left;
+}
+
+.health {
+  margin: auto;
+}
+
+.health .tile {
+  background: #333;
+}
+
+.health .tile.health-point {
+  background: red;
 }
 
 .floor {
@@ -42,6 +54,10 @@ body {
 
 .hit {
   background: red;
+}
+
+.cake {
+  background: #f9a;
 }
 
 .torch {

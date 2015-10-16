@@ -14,6 +14,7 @@ module.exports = function(grunt) {
                     'src/*.js',
                     'src/*/*.js',
                     'src/*/*/*.js',
+                    'src/*/*/*/*.js',
                     'Gruntfile.js'
                 ],
                 tasks: [ 'build:js' ]
@@ -26,7 +27,8 @@ module.exports = function(grunt) {
                     'src/core/*.js',
                     'src/*.js',
                     'src/things/*.js',
-                    'src/things/*/*.js'
+                    'src/things/*/*.js',
+                    'src/things/*/*/*.js'
                 ],
                 dest: 'pxlqst.js',
             }

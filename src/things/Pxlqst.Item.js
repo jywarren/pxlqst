@@ -12,6 +12,7 @@ Pxlqst.Item = Pxlqst.Thing.extend({
     item.take = function(_x, _y) {
 
       // user.inventory.add(item);
+      console.log('you took the item!');
 
     }
 

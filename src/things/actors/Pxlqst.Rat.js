@@ -45,7 +45,10 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
       // don't go through walls (do this in Actor ? but ghosts!)
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        rat.goTo(newx, newy);  
+        // try to hit You, but if not, go to newx, newy
+        if (!rat.tryHit(newx, newy)) {
+          rat.goTo(newx, newy);  
+        }
 
       }
  

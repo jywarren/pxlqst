@@ -335,16 +335,20 @@ Pxlqst.World = Class.extend({
 
     world.resize = function() {
 
-      if ($(window).width() < $(window).height()) var smallestDimension = $(window).width()
-      else                                        var smallestDimension = $(window).height()
+      if ($(window).width() < $(window).height()) var smallestDimension = $(window).width();
+      else                                        var smallestDimension = $(window).height() - 100;
 
-      $('.viewport').width( smallestDimension * 0.85)
-                    .height(smallestDimension * 0.85);
+      world.roomWidth = Math.ceil(smallestDimension * 0.85);
 
-      world.roomWidth = $('.viewport').width();
+      $('.viewport, .health').width( world.roomWidth)
+                             .height(world.roomWidth);
 
-      $('.tile').width(  world.roomWidth / 16 - 4) // account for border-width
-                .height( world.roomWidth / 16 - 4);
+      world.tileWidth = world.roomWidth / 16 - 4; // account for border-width
+
+      $('.tile').width(  world.tileWidth)
+                .height( world.tileWidth);
+
+      $('.health').css('margin-top', world.tileWidth);
 
     }
 
@@ -431,6 +435,21 @@ Pxlqst.Enemy = Pxlqst.Actor.extend({
     // basic setup
     this._super(x, y, room);
 
+    var enemy = this;
+
+    this.tryHit = function(newx, newy) {
+
+      // take hit
+      if (room.tile(newx, newy).has(Pxlqst.You)) {
+
+        room.tile(newx, newy).has(Pxlqst.You).hit();
+
+        return true;
+
+      } else return false;
+
+    }
+
   }
 
 });
@@ -449,6 +468,7 @@ Pxlqst.Item = Pxlqst.Thing.extend({
     item.take = function(_x, _y) {
 
       // user.inventory.add(item);
+      console.log('you took the item!');
 
     }
 
@@ -502,7 +522,10 @@ Pxlqst.Monster = Pxlqst.Enemy.extend({
 
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        monster.goTo(newx, newy);  
+        // try to hit You, but if not, go to newx, newy
+        if (!monster.tryHit(newx, newy)) {
+          monster.goTo(newx, newy);  
+        }
 
       }
  
@@ -564,7 +587,10 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
       // don't go through walls (do this in Actor ? but ghosts!)
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        rat.goTo(newx, newy);  
+        // try to hit You, but if not, go to newx, newy
+        if (!rat.tryHit(newx, newy)) {
+          rat.goTo(newx, newy);  
+        }
 
       }
  
@@ -593,6 +619,13 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
     you.cssClass = profession;
 
+    you.health = 10;
+
+    // create health bar. Like a luna bar.
+    for (var i = 0; i < you.health; i++) {
+      $('.health').append('<div class="tile health-point"></div>');
+    }
+
 
     you.walkToward = function(x, y) {
 
@@ -618,26 +651,77 @@ Pxlqst.You = Pxlqst.Actor.extend({
         // don't go through walls (do this in Actor ? but ghosts!)
         if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-          you.goTo(newx, newy);
+          if (room.tile(newx, newy).has(Pxlqst.Enemy)) {
+
+            you.hit(); // take hit
+
+          } else if (room.tile(newx, newy).has(Pxlqst.Item)) {
+
+            if (room.tile(newx, newy).has(Pxlqst.Food)) {
+
+              you.eat(room.tile(newx, newy).has(Pxlqst.Item));
+              
+            } else {
+
+              // you get it!
+              room.tile(newx, newy).has(Pxlqst.Item).take();
+
+            }
+
+            // de redundant this
+            you.goTo(newx, newy);
+
+          } else {
+
+            you.goTo(newx, newy);
+
+          }
  
         }
 
         if (you.x == you.destination.x && you.y == you.destination.y) you.destination = undefined;
 
-        // take hit
-        if (room.tile(newx, newy).has(Pxlqst.Enemy)) {
-
-          you.tile().el.addClass('hit');
-
-          setTimeout(function() {
-
-            you.tile().el.removeClass('hit');
-
-          }, 100);
-
-        }
 
       }
+
+    }
+
+
+    you.eat = function(food) {
+
+      you.health += food.nutrition;
+
+      food.tile().remove(food);
+
+      you.heal(food.nutrition);
+
+    }
+
+
+    you.heal = function(amount) {
+
+      for (var i = 0; i < amount && you.health <= 10; i++) {
+
+        $('.health div:not(.health-point):first').addClass('health-point');
+
+      }
+
+    }
+
+
+    you.hit = function() {
+
+      you.tile().el.addClass('hit');
+
+      you.health -= 1;
+    
+      setTimeout(function() {
+    
+        you.tile().el.removeClass('hit');
+    
+      }, 400);
+
+      $('.health .health-point:last').removeClass('health-point');
 
     }
 
@@ -647,7 +731,22 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
 });
 
-Pxlqst.Torch = Pxlqst.Thing.extend({
+Pxlqst.Food = Pxlqst.Item.extend({
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var item = this;
+
+    return item;
+
+  }
+
+});
+
+Pxlqst.Torch = Pxlqst.Item.extend({
 
   cssClass: 'torch',
 
@@ -671,6 +770,25 @@ Pxlqst.Torch = Pxlqst.Thing.extend({
     torch.interval = setInterval(torch.flicker, 100);
 
     return torch;
+
+  }
+
+});
+
+Pxlqst.Cake = Pxlqst.Food.extend({
+
+  cssClass: 'cake',
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var cake = this;
+
+    cake.nutrition = 2;
+
+    return cake;
 
   }
 

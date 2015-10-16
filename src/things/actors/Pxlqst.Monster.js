@@ -24,7 +24,10 @@ Pxlqst.Monster = Pxlqst.Enemy.extend({
 
       if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-        monster.goTo(newx, newy);  
+        // try to hit You, but if not, go to newx, newy
+        if (!monster.tryHit(newx, newy)) {
+          monster.goTo(newx, newy);  
+        }
 
       }
  

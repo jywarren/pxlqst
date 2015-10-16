@@ -1,4 +1,4 @@
-Pxlqst.Torch = Pxlqst.Thing.extend({
+Pxlqst.Torch = Pxlqst.Item.extend({
 
   cssClass: 'torch',
 

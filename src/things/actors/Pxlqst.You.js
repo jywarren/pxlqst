@@ -12,6 +12,13 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
     you.cssClass = profession;
 
+    you.health = 10;
+
+    // create health bar. Like a luna bar.
+    for (var i = 0; i < you.health; i++) {
+      $('.health').append('<div class="tile health-point"></div>');
+    }
+
 
     you.walkToward = function(x, y) {
 
@@ -37,26 +44,77 @@ Pxlqst.You = Pxlqst.Actor.extend({
         // don't go through walls (do this in Actor ? but ghosts!)
         if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
 
-          you.goTo(newx, newy);
+          if (room.tile(newx, newy).has(Pxlqst.Enemy)) {
+
+            you.hit(); // take hit
+
+          } else if (room.tile(newx, newy).has(Pxlqst.Item)) {
+
+            if (room.tile(newx, newy).has(Pxlqst.Food)) {
+
+              you.eat(room.tile(newx, newy).has(Pxlqst.Item));
+              
+            } else {
+
+              // you get it!
+              room.tile(newx, newy).has(Pxlqst.Item).take();
+
+            }
+
+            // de redundant this
+            you.goTo(newx, newy);
+
+          } else {
+
+            you.goTo(newx, newy);
+
+          }
  
         }
 
         if (you.x == you.destination.x && you.y == you.destination.y) you.destination = undefined;
 
-        // take hit
-        if (room.tile(newx, newy).has(Pxlqst.Enemy)) {
-
-          you.tile().el.addClass('hit');
-
-          setTimeout(function() {
-
-            you.tile().el.removeClass('hit');
-
-          }, 100);
-
-        }
 
       }
+
+    }
+
+
+    you.eat = function(food) {
+
+      you.health += food.nutrition;
+
+      food.tile().remove(food);
+
+      you.heal(food.nutrition);
+
+    }
+
+
+    you.heal = function(amount) {
+
+      for (var i = 0; i < amount && you.health <= 10; i++) {
+
+        $('.health div:not(.health-point):first').addClass('health-point');
+
+      }
+
+    }
+
+
+    you.hit = function() {
+
+      you.tile().el.addClass('hit');
+
+      you.health -= 1;
+    
+      setTimeout(function() {
+    
+        you.tile().el.removeClass('hit');
+    
+      }, 400);
+
+      $('.health .health-point:last').removeClass('health-point');
 
     }
 
