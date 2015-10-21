@@ -7,6 +7,8 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
 
     var actor = this;
 
+    // everyone gets 10 health to start with. EVERYONE
+    actor.health = 10;
 
     // keeps x, y in bounds
     actor.confineToRoom = function(_x, _y) {
@@ -19,13 +21,21 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
     }
 
 
-    actor.goTo = function(_x, _y) {
-      
-          actor.tile().remove(actor);
-       
-          room.tile(_x, _y).add(actor);
+    actor.hit = function(strength) {
 
-    }
+      strength = strength || 1;
+
+      actor.tile().el.addClass('hit');
+
+      actor.health -= strength;
+    
+      setTimeout(function() {
+    
+        actor.tile().el.removeClass('hit');
+    
+      }, 400);
+
+    };
 
 
     return actor;

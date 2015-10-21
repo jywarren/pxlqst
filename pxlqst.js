@@ -157,21 +157,31 @@ Pxlqst.Thing = Class.extend({
 
   init: function(x, y, room) {
 
-    var object = this;
+    var thing = this;
 
-    object.x = x;
-    object.y = y;
-    object.room = room;
+    thing.x = x;
+    thing.y = y;
+    thing.room = room;
 
 
-    object.tile = function() {
+    thing.tile = function() {
 
-      return room.tile(object.x, object.y);
+      return room.tile(thing.x, thing.y);
 
     }
 
 
-    return object;
+    // move to any tile, removing self from old tile
+    thing.move = function(_x, _y) {
+      
+          thing.tile().remove(thing);
+       
+          room.tile(_x, _y).add(thing);
+
+    }
+
+
+    return thing;
 
   }
 
@@ -401,6 +411,8 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
 
     var actor = this;
 
+    // everyone gets 10 health to start with. EVERYONE
+    actor.health = 10;
 
     // keeps x, y in bounds
     actor.confineToRoom = function(_x, _y) {
@@ -413,13 +425,21 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
     }
 
 
-    actor.goTo = function(_x, _y) {
-      
-          actor.tile().remove(actor);
-       
-          room.tile(_x, _y).add(actor);
+    actor.hit = function(strength) {
 
-    }
+      strength = strength || 1;
+
+      actor.tile().el.addClass('hit');
+
+      actor.health -= strength;
+    
+      setTimeout(function() {
+    
+        actor.tile().el.removeClass('hit');
+    
+      }, 400);
+
+    };
 
 
     return actor;
@@ -520,11 +540,11 @@ Pxlqst.Monster = Pxlqst.Enemy.extend({
 
       monster.confineToRoom(newx, newy);
 
-      if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
 
         // try to hit You, but if not, go to newx, newy
         if (!monster.tryHit(newx, newy)) {
-          monster.goTo(newx, newy);  
+          monster.move(newx, newy);  
         }
 
       }
@@ -584,12 +604,12 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
       // actually move:
       rat.confineToRoom(newx, newy);
 
-      // don't go through walls (do this in Actor ? but ghosts!)
-      if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+      // don't go through walls, or obstacles (stone for now)
+      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
 
         // try to hit You, but if not, go to newx, newy
         if (!rat.tryHit(newx, newy)) {
-          rat.goTo(newx, newy);  
+          rat.move(newx, newy);  
         }
 
       }
@@ -620,6 +640,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
     you.cssClass = profession;
 
     you.health = 10;
+    you.held = false;
 
     // create health bar. Like a luna bar.
     for (var i = 0; i < you.health; i++) {
@@ -640,6 +661,8 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
       if (you.destination) {
 
+//        you.stepTowards(you.destination.x, you.destination.y);
+
         if (Math.abs(you.destination.x - you.x) > Math.abs(you.destination.y - you.y)) {
           if (you.destination.x > you.x) newx = you.x + 1;
           else                           newx = you.x - 1;
@@ -648,32 +671,44 @@ Pxlqst.You = Pxlqst.Actor.extend({
           else                           newy = you.y - 1;
         }
 
-        // don't go through walls (do this in Actor ? but ghosts!)
-        if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+        var tile = room.tile(newx, newy);
 
-          if (room.tile(newx, newy).has(Pxlqst.Enemy)) {
+        // don't go through walls (do this in Actor ? but ghosts!)
+        if (!tile.has(Pxlqst.Wall)) {
+
+          if (tile.has(Pxlqst.Enemy)) {
 
             you.hit(); // take hit
 
-          } else if (room.tile(newx, newy).has(Pxlqst.Item)) {
+          } else if (tile.has(Pxlqst.Item)) {
 
-            if (room.tile(newx, newy).has(Pxlqst.Food)) {
+            var item = tile.has(Pxlqst.Item)
 
-              you.eat(room.tile(newx, newy).has(Pxlqst.Item));
+            if (item instanceof Pxlqst.Food) {
+
+              you.eat(item);
               
+            } else if (tile.has(Pxlqst.Item).pushable){
+
+              if      (you.x > newx) item.move(newx - 1, newy);
+              else if (you.x < newx) item.move(newx + 1, newy);
+              else if (you.y > newy) item.move(newx, newy - 1); // this will never happen
+              else if (you.y < newy) item.move(newx, newy + 1);
+
             } else {
 
               // you get it!
-              room.tile(newx, newy).has(Pxlqst.Item).take();
+console.log('took', item.cssClass);
+              you.take(item);
 
             }
 
             // de redundant this
-            you.goTo(newx, newy);
+            you.move(newx, newy);
 
           } else {
 
-            you.goTo(newx, newy);
+            you.move(newx, newy);
 
           }
  
@@ -709,23 +744,33 @@ Pxlqst.You = Pxlqst.Actor.extend({
     }
 
 
-    you.hit = function() {
+    you.take = function(item) {
 
-      you.tile().el.addClass('hit');
-
-      you.health -= 1;
-    
-      setTimeout(function() {
-    
-        you.tile().el.removeClass('hit');
-    
-      }, 400);
-
-      $('.health .health-point:last').removeClass('health-point');
+      you.held = item;
 
     }
 
+
     you.interval = setInterval(you.walk, 500);
+
+  },
+
+
+  move: function(x, y) {
+
+    you.held.move(x, y - 1);
+
+    this._super(x, y);
+console.log('moved')
+  },
+
+
+  hit: function() {
+
+    this._super();
+
+    // we should count these; maybe empty them and repopulate?
+    $('.health .health-point:last').removeClass('health-point');
 
   }
 
@@ -746,7 +791,93 @@ Pxlqst.Food = Pxlqst.Item.extend({
 
 });
 
-Pxlqst.Torch = Pxlqst.Item.extend({
+Pxlqst.Stone = Pxlqst.Item.extend({
+
+  cssClass: 'stone',
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var stone = this;
+
+    stone.pushable = true;
+
+    return stone;
+
+  }
+
+});
+
+Pxlqst.Tool = Pxlqst.Item.extend({
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var tool = this;
+
+    return tool;
+
+  }
+
+});
+
+Pxlqst.Cake = Pxlqst.Food.extend({
+
+  cssClass: 'cake',
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var cake = this;
+
+    cake.nutrition = 2;
+
+    return cake;
+
+  }
+
+});
+
+Pxlqst.Sword = Pxlqst.Tool.extend({
+
+  cssClass: 'sword',
+
+  // Can we do a sword shimmering in the light?
+  //shimmers: ['yellow', 'orange', '#f84', '#fa2', 'red'],
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var sword = this;
+
+
+    sword.use = function(tile) {
+
+      if (tile.has(Pxlqst.Actor)) {
+
+        tile.has(Pxlqst.Actor).hit();
+
+        return true;
+
+      } else return false;
+
+    }
+
+    return sword;
+
+  }
+
+});
+
+Pxlqst.Torch = Pxlqst.Tool.extend({
 
   cssClass: 'torch',
 
@@ -770,25 +901,6 @@ Pxlqst.Torch = Pxlqst.Item.extend({
     torch.interval = setInterval(torch.flicker, 100);
 
     return torch;
-
-  }
-
-});
-
-Pxlqst.Cake = Pxlqst.Food.extend({
-
-  cssClass: 'cake',
-
-  init: function(x, y, room) {
-
-    // basic setup
-    this._super(x, y, room);
-
-    var cake = this;
-
-    cake.nutrition = 2;
-
-    return cake;
 
   }
 

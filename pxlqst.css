@@ -64,6 +64,14 @@ body {
   transition: background 0.2s /*, transform 1s; */
 }
 
+.sword {
+  background: #bbf;
+}
+
+.stone {
+  background: #677;
+}
+
 .monster {
   background: #6a2;
 }

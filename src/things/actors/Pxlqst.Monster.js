@@ -22,11 +22,11 @@ Pxlqst.Monster = Pxlqst.Enemy.extend({
 
       monster.confineToRoom(newx, newy);
 
-      if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
 
         // try to hit You, but if not, go to newx, newy
         if (!monster.tryHit(newx, newy)) {
-          monster.goTo(newx, newy);  
+          monster.move(newx, newy);  
         }
 
       }

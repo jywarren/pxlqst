@@ -1,4 +1,4 @@
-Pxlqst.Torch = Pxlqst.Item.extend({
+Pxlqst.Torch = Pxlqst.Tool.extend({
 
   cssClass: 'torch',
 

@@ -13,6 +13,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
     you.cssClass = profession;
 
     you.health = 10;
+    you.held = false;
 
     // create health bar. Like a luna bar.
     for (var i = 0; i < you.health; i++) {
@@ -33,6 +34,8 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
       if (you.destination) {
 
+//        you.stepTowards(you.destination.x, you.destination.y);
+
         if (Math.abs(you.destination.x - you.x) > Math.abs(you.destination.y - you.y)) {
           if (you.destination.x > you.x) newx = you.x + 1;
           else                           newx = you.x - 1;
@@ -41,32 +44,44 @@ Pxlqst.You = Pxlqst.Actor.extend({
           else                           newy = you.y - 1;
         }
 
-        // don't go through walls (do this in Actor ? but ghosts!)
-        if (!room.tile(newx, newy).has(Pxlqst.Wall)) {
+        var tile = room.tile(newx, newy);
 
-          if (room.tile(newx, newy).has(Pxlqst.Enemy)) {
+        // don't go through walls (do this in Actor ? but ghosts!)
+        if (!tile.has(Pxlqst.Wall)) {
+
+          if (tile.has(Pxlqst.Enemy)) {
 
             you.hit(); // take hit
 
-          } else if (room.tile(newx, newy).has(Pxlqst.Item)) {
+          } else if (tile.has(Pxlqst.Item)) {
 
-            if (room.tile(newx, newy).has(Pxlqst.Food)) {
+            var item = tile.has(Pxlqst.Item)
 
-              you.eat(room.tile(newx, newy).has(Pxlqst.Item));
+            if (item instanceof Pxlqst.Food) {
+
+              you.eat(item);
               
+            } else if (tile.has(Pxlqst.Item).pushable){
+
+              if      (you.x > newx) item.move(newx - 1, newy);
+              else if (you.x < newx) item.move(newx + 1, newy);
+              else if (you.y > newy) item.move(newx, newy - 1); // this will never happen
+              else if (you.y < newy) item.move(newx, newy + 1);
+
             } else {
 
               // you get it!
-              room.tile(newx, newy).has(Pxlqst.Item).take();
+console.log('took', item.cssClass);
+              you.take(item);
 
             }
 
             // de redundant this
-            you.goTo(newx, newy);
+            you.move(newx, newy);
 
           } else {
 
-            you.goTo(newx, newy);
+            you.move(newx, newy);
 
           }
  
@@ -102,23 +117,33 @@ Pxlqst.You = Pxlqst.Actor.extend({
     }
 
 
-    you.hit = function() {
+    you.take = function(item) {
 
-      you.tile().el.addClass('hit');
-
-      you.health -= 1;
-    
-      setTimeout(function() {
-    
-        you.tile().el.removeClass('hit');
-    
-      }, 400);
-
-      $('.health .health-point:last').removeClass('health-point');
+      you.held = item;
 
     }
 
+
     you.interval = setInterval(you.walk, 500);
+
+  },
+
+
+  move: function(x, y) {
+
+    you.held.move(x, y - 1);
+
+    this._super(x, y);
+console.log('moved')
+  },
+
+
+  hit: function() {
+
+    this._super();
+
+    // we should count these; maybe empty them and repopulate?
+    $('.health .health-point:last').removeClass('health-point');
 
   }
 

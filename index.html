@@ -35,12 +35,12 @@
 
         // doors!
         // this is wrong; we should separate state from display: create Wall thing 
-        room.tile( 0, 8).remove(room.tile( 0, 8).things[0]);
-        room.tile(11, 0).remove(room.tile(11, 0).things[0]);
+        room.tile( 0,  8).remove(room.tile( 0, 8).things[0]);
+        room.tile(11,  0).remove(room.tile(11, 0).things[0]);
   
   
         // monsters!
-        room.tile(12, 3).create(Pxlqst.Monster);
+        room.tile(12,  3).create(Pxlqst.Monster);
   
   
         // rats!
@@ -49,11 +49,19 @@
   
   
         // torch!
-        room.tile( 4, 8).create(Pxlqst.Torch);
+        room.tile( 4,  8).create(Pxlqst.Torch);
 
   
         // cake!
-        room.tile( 13, 12).create(Pxlqst.Cake);
+        room.tile(13, 12).create(Pxlqst.Cake);
+
+  
+        // stone!
+        room.tile( 3, 12).create(Pxlqst.Stone);
+
+  
+        // sword!
+        room.tile( 4,  5).create(Pxlqst.Sword);
   
 
       });

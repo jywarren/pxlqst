@@ -2,21 +2,31 @@ Pxlqst.Thing = Class.extend({
 
   init: function(x, y, room) {
 
-    var object = this;
+    var thing = this;
 
-    object.x = x;
-    object.y = y;
-    object.room = room;
+    thing.x = x;
+    thing.y = y;
+    thing.room = room;
 
 
-    object.tile = function() {
+    thing.tile = function() {
 
-      return room.tile(object.x, object.y);
+      return room.tile(thing.x, thing.y);
 
     }
 
 
-    return object;
+    // move to any tile, removing self from old tile
+    thing.move = function(_x, _y) {
+      
+          thing.tile().remove(thing);
+       
+          room.tile(_x, _y).add(thing);
+
+    }
+
+
+    return thing;
 
   }
 
