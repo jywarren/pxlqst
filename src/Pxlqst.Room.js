@@ -1,7 +1,6 @@
 Pxlqst.Room = Class.extend({
 
   tiles: [],
-  tilesWide: 16,
 
   neighbors: {
 
@@ -12,11 +11,12 @@ Pxlqst.Room = Class.extend({
 
   },
 
-  init: function(world) {
+  init: function(world, tilesWide) {
 
     var room = this;
 
     room.world = world; 
+    room.tilesWide = tilesWide; 
 
     $('.viewport').append('<div class="room"></div>');
     room.el = $('.viewport .room:last')
