@@ -2,8 +2,15 @@
 
 A pixel quest.
 
-https://jywarren.github.io/pxlqst
+http://pxlqst.com
 
+
+##Rules
+
+1. No objects larger than 1x1 pixels
+2. No text
+
+****
 
 ##Setup
 
@@ -16,4 +23,3 @@ https://jywarren.github.io/pxlqst
 2. You may need to install grunt-cli: `npm install -g grunt-cli`.
 3. Run `grunt` in the root directory, and it will watch for changes and concatenate them on the fly.
 
-****

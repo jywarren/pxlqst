@@ -12,18 +12,24 @@ Pxlqst.Sword = Pxlqst.Tool.extend({
 
     var sword = this;
 
+    // also, don't enter the tile if it's occupied.
+    // move should return true or false!
+    //sword.use = function(tile) {
+    //sword.superMove = sword.move;
+    sword.use = function(x, y) {
 
-    sword.use = function(tile) {
+      if (sword.room.tile(x, y).has(Pxlqst.Actor)) {
 
-      if (tile.has(Pxlqst.Actor)) {
+        sword.room.tile(x, y).has(Pxlqst.Actor).hit();
 
-        tile.has(Pxlqst.Actor).hit();
+        sword.superUse(x, y);
 
-        return true;
+        return true; // when switching to use(), return if it was used
 
       } else return false;
 
     }
+
 
     return sword;
 

@@ -71,7 +71,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
             } else {
 
               // you get it!
-console.log('took', item.cssClass);
+              console.log('took', item.cssClass);
               you.take(item);
 
             }
@@ -97,8 +97,6 @@ console.log('took', item.cssClass);
 
     you.eat = function(food) {
 
-      you.health += food.nutrition;
-
       food.tile().remove(food);
 
       you.heal(food.nutrition);
@@ -107,6 +105,8 @@ console.log('took', item.cssClass);
 
 
     you.heal = function(amount) {
+
+      you.health += amount;
 
       for (var i = 0; i < amount && you.health <= 10; i++) {
 
@@ -124,26 +124,34 @@ console.log('took', item.cssClass);
     }
 
 
+    // preserve super method
+    you.superMove = you.move;
+    you.move = function(x, y) {
+ 
+      if (you.held) you.held.move(x, y - 1);
+
+      return you.superMove(x, y);
+
+    }
+
+
+    // preserve super method
+    you.superHit = you.hit;
+    you.hit = function() {
+
+      you.superHit();
+
+      // empty them and repopulate
+      $('.health .health-point').removeClass('health-point');
+     
+      for(var i = 0; i < you.health; i++) {
+        $($('.health .tile')[i]).addClass('health-point');
+      }
+
+    }
+
+
     you.interval = setInterval(you.walk, 500);
-
-  },
-
-
-  move: function(x, y) {
-
-    you.held.move(x, y - 1);
-
-    this._super(x, y);
-console.log('moved')
-  },
-
-
-  hit: function() {
-
-    this._super();
-
-    // we should count these; maybe empty them and repopulate?
-    $('.health .health-point:last').removeClass('health-point');
 
   }
 

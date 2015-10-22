@@ -14,8 +14,18 @@ Pxlqst.Torch = Pxlqst.Tool.extend({
 
     torch.flicker = function() {
 
-      torch.room.tile(x, y).el.css('background', torch.flickers[parseInt(Math.random() * torch.flickers.length)]);
-   
+      torch.room.tile(torch.x, torch.y).el.css('background', torch.flickers[parseInt(Math.random() * torch.flickers.length)]);
+
+    }
+
+
+    torch.superMove = torch.move;
+    torch.move = function(x, y) {
+
+      torch.room.tile(torch.x, torch.y).el.css('background','');
+
+      torch.superMove(x, y);
+
     }
 
 
