@@ -23,3 +23,7 @@ http://pxlqst.com
 2. You may need to install grunt-cli: `npm install -g grunt-cli`.
 3. Run `grunt` in the root directory, and it will watch for changes and concatenate them on the fly.
 
+##Test adventure
+
+Pxlqst comes with a [test suite](https://github.com/jywarren/pxlqst/issues/4) using [Jasmine](https://jasmine.github.io) which lead the tester on an adventure through the dungeons. To run this test adventure, run `rake jasmine` from the root directory, then navigate to http://localhost:8888. 
+

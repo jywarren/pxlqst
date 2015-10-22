@@ -1,27 +1,28 @@
 {
-  "name": "SVGEditor",
+  "name": "Pxlqst",
   "version": "0.0.1",
-  "description": "A minimal d3-based SVG editor.",
+  "description": "A pixel quest.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jywarren/SVGEdit.git"
+    "url": "https://github.com/jywarren/pxlqst.git"
   },
   "keywords": [
-    "svg",
-    "editor"
+    "pixel",
+    "adventure",
+    "game"
   ],
   "author": "Jeff Warren",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/jywarren/SVGEditor/issues"
+    "url": "https://github.com/jywarren/pxlqst/issues"
   },
-  "homepage": "https://github.com/jywarren/SVGEditor",
+  "homepage": "http://pxlqst.com",
   "dependencies": {
-    "d3":              "~3.3.13",
-    "simplify-js":     "~1.2.1"
+    "jasmine":          "~2.3.0",
+    "jasmine-jquery":   "~2.1.1"
   },
   "devDependencies": {
     "matchdep":                           "^0.3.0",
