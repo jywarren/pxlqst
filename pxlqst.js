@@ -70,7 +70,6 @@ Pxlqst = {};
 Pxlqst.Room = Class.extend({
 
   tiles: [],
-  tilesWide: 16,
 
   neighbors: {
 
@@ -81,11 +80,12 @@ Pxlqst.Room = Class.extend({
 
   },
 
-  init: function(world) {
+  init: function(world, tilesWide) {
 
     var room = this;
 
     room.world = world; 
+    room.tilesWide = tilesWide; 
 
     $('.viewport').append('<div class="room"></div>');
     room.el = $('.viewport .room:last')
@@ -337,6 +337,7 @@ Pxlqst.World = Class.extend({
 
   currentRoom: 0,
   rooms: [],
+  tilesWide: 16,
 
   init: function() {
 
@@ -350,22 +351,25 @@ Pxlqst.World = Class.extend({
 
       world.roomWidth = Math.ceil(smallestDimension * 0.85);
 
-      $('.viewport, .health').width( world.roomWidth)
-                             .height(world.roomWidth);
+      $('.viewport').width( world.roomWidth)
+                    .height(world.roomWidth);
 
-      world.tileWidth = world.roomWidth / 16 - 4; // account for border-width
+      $('.health').width(world.roomWidth);
+
+      world.tileWidth = world.roomWidth / world.tilesWide - 4; // account for border-width
 
       $('.tile').width(  world.tileWidth)
                 .height( world.tileWidth);
 
       $('.health').css('margin-top', world.tileWidth);
+      $('.credits').css('margin-right', ($(window).width() - world.roomWidth) / 2);
 
     }
 
 
     world.addRoom = function(oldRoom, direction) {
 
-      var room = new Pxlqst.Room(world);
+      var room = new Pxlqst.Room(world, world.tilesWide);
       world.rooms.push(room);
 
       // only if provided:
@@ -648,9 +652,9 @@ Pxlqst.You = Pxlqst.Actor.extend({
     }
 
 
-    you.walkToward = function(x, y) {
+    you.walkToward = function(x, y, callback) {
 
-      you.destination = {x: x, y: y};
+      you.destination = { x: x, y: y, callback: callback };
 
     }
 
@@ -666,7 +670,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
         if (Math.abs(you.destination.x - you.x) > Math.abs(you.destination.y - you.y)) {
           if (you.destination.x > you.x) newx = you.x + 1;
           else                           newx = you.x - 1;
-        } else {
+        } else if (Math.abs(you.destination.x - you.x) < Math.abs(you.destination.y - you.y)) {
           if (you.destination.y > you.y) newy = you.y + 1;
           else                           newy = you.y - 1;
         }
@@ -714,8 +718,13 @@ Pxlqst.You = Pxlqst.Actor.extend({
  
         }
 
-        if (you.x == you.destination.x && you.y == you.destination.y) you.destination = undefined;
+        if (you.x == you.destination.x && you.y == you.destination.y) {
 
+          console.log('you arrive at ', you.x, you.y);
+          you.destination.callback();
+          you.destination = undefined;
+
+        }
 
       }
 

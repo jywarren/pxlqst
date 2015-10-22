@@ -28,6 +28,11 @@ body {
   margin: auto;
 }
 
+.credits {
+  margin: auto;
+  float: right;
+}
+
 .health .tile {
   background: #333;
 }

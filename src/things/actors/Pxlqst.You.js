@@ -21,9 +21,9 @@ Pxlqst.You = Pxlqst.Actor.extend({
     }
 
 
-    you.walkToward = function(x, y) {
+    you.walkToward = function(x, y, callback) {
 
-      you.destination = {x: x, y: y};
+      you.destination = { x: x, y: y, callback: callback };
 
     }
 
@@ -39,7 +39,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
         if (Math.abs(you.destination.x - you.x) > Math.abs(you.destination.y - you.y)) {
           if (you.destination.x > you.x) newx = you.x + 1;
           else                           newx = you.x - 1;
-        } else {
+        } else if (Math.abs(you.destination.x - you.x) < Math.abs(you.destination.y - you.y)) {
           if (you.destination.y > you.y) newy = you.y + 1;
           else                           newy = you.y - 1;
         }
@@ -87,8 +87,13 @@ Pxlqst.You = Pxlqst.Actor.extend({
  
         }
 
-        if (you.x == you.destination.x && you.y == you.destination.y) you.destination = undefined;
+        if (you.x == you.destination.x && you.y == you.destination.y) {
 
+          console.log('you arrive at ', you.x, you.y);
+          you.destination.callback();
+          you.destination = undefined;
+
+        }
 
       }
 
