@@ -21,7 +21,7 @@ Pxlqst.World = Class.extend({
 
       $('.health').width(world.roomWidth);
 
-      world.tileWidth = world.roomWidth / world.tilesWide - 4; // account for border-width
+      world.tileWidth = world.roomWidth / world.tilesWide - 5; // account for border-width
 
       $('.tile').width(  world.tileWidth)
                 .height( world.tileWidth);
