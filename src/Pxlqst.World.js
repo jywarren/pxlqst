@@ -1,12 +1,13 @@
 Pxlqst.World = Class.extend({
 
-  currentRoom: 0,
+  room: 0,
   rooms: [],
   tilesWide: 16,
 
   init: function() {
 
     var world = this;
+    console.log('world created');
 
 
     world.resize = function() {
@@ -47,7 +48,7 @@ Pxlqst.World = Class.extend({
 
     world.goTo = function(room) {
 
-      world.currentRoom = room;
+      world.room = room;
       room.draw();
 
       return room;
@@ -58,7 +59,7 @@ Pxlqst.World = Class.extend({
     world.goTo(world.addRoom());
 
     // add a "choose a profession" intro
-    world.you = world.currentRoom.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.currentRoom));
+    world.you = world.room.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.room));
 
 
     world.resize();

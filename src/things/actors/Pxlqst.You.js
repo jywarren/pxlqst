@@ -39,7 +39,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
         if (Math.abs(you.destination.x - you.x) > Math.abs(you.destination.y - you.y)) {
           if (you.destination.x > you.x) newx = you.x + 1;
           else                           newx = you.x - 1;
-        } else if (Math.abs(you.destination.x - you.x) < Math.abs(you.destination.y - you.y)) {
+        } else {
           if (you.destination.y > you.y) newy = you.y + 1;
           else                           newy = you.y - 1;
         }
@@ -78,10 +78,12 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
             // de redundant this
             you.move(newx, newy);
+            console.log('step');
 
           } else {
 
             you.move(newx, newy);
+            console.log('step');
 
           }
  
