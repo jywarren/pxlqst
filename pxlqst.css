@@ -30,6 +30,7 @@ body {
 
 .credits {
   margin: auto;
+  padding-right: 25px; /* hack, due to Firefox size issues */
   float: right;
 }
 

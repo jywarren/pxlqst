@@ -3,13 +3,14 @@ describe("You", function() {
   var world, room, you = it;
 
 
+  //beforeAll(function() {
   beforeEach(function() {
 
     fixture = loadFixtures('index.html');
 
     world = new Pxlqst.World();
  
-    room = world.currentRoom;
+    room = world.room;
  
     // doors!
     // this is wrong; we should separate state from display: create Wall thing 
@@ -51,6 +52,11 @@ describe("You", function() {
 
   });
 
+  // we should also test by sending onClick to the right tile:
+  // room.tile(9, 11).click()
+  // "are compelled by a mysterious force to walk across the room"
+
+  // it seems the DOM gets torn down here?
 
   you("walk west one step and pick up the torch", function(done) {
 
