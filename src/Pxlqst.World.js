@@ -22,7 +22,10 @@ Pxlqst.World = Class.extend({
 
       $('.health').width(world.roomWidth);
 
-      world.tileWidth = world.roomWidth / world.tilesWide - 5; // account for border-width
+      world.tileWidth = world.roomWidth / world.tilesWide - 5; // account for border-width of 2px on each side; moz likes 5, other 4
+      // the above is usually a decimal; firefox may not like that?
+      // we could round the tileWidth, then recalc room width?
+      //world.tileWidth = Math.round(world.roomWidth / world.tilesWide - 4); // account for border-width of 2px on each side; moz likes 5, other 4
 
       $('.tile').width(  world.tileWidth)
                 .height( world.tileWidth);
