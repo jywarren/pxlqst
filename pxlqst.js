@@ -727,8 +727,10 @@ Pxlqst.You = Pxlqst.Actor.extend({
         if (you.x == you.destination.x && you.y == you.destination.y) {
 
           console.log('you arrive at ', you.x, you.y);
-          you.destination.callback();
-          you.destination = undefined;
+          
+          callback = you.destination.callback; // save the callback so we can call it
+          you.destination = undefined; // but clear the dest before calling the callback
+          if (callback) callback(); // calling this ends test runs synchronously
 
         }
 
