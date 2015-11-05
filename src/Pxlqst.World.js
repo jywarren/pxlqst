@@ -17,7 +17,7 @@ Pxlqst.World = Class.extend({
 
       world.roomWidth = Math.ceil(smallestDimension * 0.85);
 
-      $('.viewport, .room').width( world.roomWidth)
+      $('.viewport, .room').width( world.roomWidth + 2) // extra 2 pixels for Firefox display fix
                            .height(world.roomWidth);
 
       $('.health').width(world.roomWidth);
