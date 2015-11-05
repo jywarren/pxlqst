@@ -28,6 +28,8 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
       actor.tile().el.addClass('hit');
 
       actor.health -= strength;
+
+console.log('I was hit and lost ', strength, ', leaving me at ', actor.health);
     
       setTimeout(function() {
     

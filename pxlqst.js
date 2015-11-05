@@ -80,15 +80,21 @@ Pxlqst.Room = Class.extend({
 
   },
 
-  init: function(world, tilesWide) {
+
+  // x, y is measured in Pxls
+  init: function(world, tilesWide, x, y, id) {
 
     var room = this;
 
     room.world = world; 
     room.tilesWide = tilesWide; 
+    room.id = id || parseInt(Math.random() * 10000);
 
-    $('.viewport').append('<div class="room"></div>');
-    room.el = $('.viewport .room:last')
+    room.x = x || 0;
+    room.y = y || 0;
+
+    $('.viewport').append('<div class="room room-' + room.id + '"></div>');
+    room.el = $('.viewport .room-' + room.id)
 
     // will need refreshing on screen/window resize:
     room.el.width( world.roomWidth)
@@ -109,9 +115,21 @@ Pxlqst.Room = Class.extend({
     }
 
 
+    room.opposite = function(direction) {
+
+      if (direction == 'n') return 's';
+      if (direction == 's') return 'n';
+      if (direction == 'e') return 'w';
+      if (direction == 'w') return 'e';
+
+    }
+
+
     room.attach = function(newRoom, direction) {
 
       room.neighbors[direction] = newRoom;
+
+      newRoom.neighbors[room.opposite(direction)] = room;
 
       return newRoom;
 
@@ -125,8 +143,47 @@ Pxlqst.Room = Class.extend({
     }
 
 
-    room.draw = function() {
+    // shift by one pixel width towards room.destination
+    // this needs to be synchronized with neighboring room...
+    room.pan = function() {
 
+      if (Math.abs(room.destination.x - room.x) > Math.abs(room.destination.y - room.y)) {
+        if (room.destination.x > room.x) room.x += 1;
+        else                             room.x -= 1;
+      } else {
+        if (room.destination.y > room.y) room.y += 1;
+        else                             room.y -= 1;
+      }
+
+      room.el.css('left', room.x * (room.world.roomWidth / world.tilesWide));
+      room.el.css('top',  room.y * (room.world.roomWidth / world.tilesWide));
+
+      if (room.interval && room.destination.x == room.x && room.destination.y == room.y) {
+        clearInterval(room.interval);
+      }
+
+    }
+
+
+    // unlike Pxlqst.Actor/Thing, moving sets a destination to pan() to
+    room.move = function(x, y, callback) {
+
+      room.destination = { x: x, y: y, callback: callback };
+
+      // should stop old room.interval here if it exists
+      if (room.interval) clearInterval(room.interval);
+
+      room.interval = setInterval(function() {
+
+        room.pan();
+
+      }, 100);
+
+    }
+
+
+    // constructs room  out of Tiles, with outer wall
+    room.create = function() {
 
       for (var y = 0; y < room.tilesWide; y++) {
   
@@ -146,6 +203,71 @@ Pxlqst.Room = Class.extend({
 
     }
 
+
+    room.remove = function() {
+
+      if (room.interval) clearInterval(room.interval);
+
+      return room.el.remove();
+
+    }
+
+
+    room.show = function() {
+
+      room.el.show();
+
+    }
+
+
+    room.hide = function() {
+
+      room.el.hide();
+
+    }
+
+
+    // create a door to the neighboring room, and a door leading back
+    room.addDoor = function(x, y) {
+
+      var direction, counterpart, neighbor;
+
+      if (y == 0) { 
+        direction = 'n';
+        counterpart = {x: x, y: room.tilesWide};
+      } else if (y == room.tilesWide - 1) {
+        direction = 's';
+        counterpart = {x: x, y: 0};
+      } else if (x == 0) {
+        direction = 'e';
+        counterpart = {x: 0, y: y};
+      } else if (x == room.tilesWide - 1) {
+        direction = 'w';
+        counterpart = {x: room.tilesWide, y: y};
+      }
+
+      if (room.neighbors[direction]) {
+console.log('room to ',direction);
+        neighbor = room.neighbors[direction];
+        counterpart = neighbor.tile(counterpart.x, counterpart.y);
+        counterpart.remove(counterpart.things[0]);
+        //counterpart.create(Pxlqst.Door);
+ 
+        room.tile(x, y).remove(room.tile(x, y).things[0]);
+        //room.tile(x, y).create(Pxlqst.Door);
+ 
+        // For now, we'll just have Pxlqst.You trigger next room when you hit the edge of the room.
+
+      } else {
+
+        console.log("There's no room in that direction!");
+
+      }
+
+    }
+
+
+    room.move(room.x, room.y);
 
     return room;
 
@@ -198,7 +320,8 @@ Pxlqst.Tile = Class.extend({
     tile.x = x;
     tile.y = y;
     tile.room = room;
-    tile.row = $('.row-' + y);
+    tile.world = room.world;
+    tile.row = $('.room-' + tile.room.id + ' .row-' + y);
     tile.row.append("<div class='tile floor column-" + x + " tile-" + (y * room.tilesWide + x) + "'></div>");
     tile.el = $('.tile-' + tile.index);
 
@@ -273,9 +396,9 @@ Pxlqst.Tile = Class.extend({
 
 
     // create a new thing and add it to this tile's things
-    tile.create = function(thing) {
+    tile.create = function(thing, args) {
 
-      thing = new thing(tile.x, tile.y, tile.room);
+      thing = new thing(tile.x, tile.y, tile.room, args);
 
       tile.add(thing);
 
@@ -352,18 +475,18 @@ Pxlqst.World = Class.extend({
 
       world.roomWidth = Math.ceil(smallestDimension * 0.85);
 
-      $('.viewport').width( world.roomWidth)
-                    .height(world.roomWidth);
+      $('.viewport, .room').width( world.roomWidth)
+                           .height(world.roomWidth);
 
       $('.health').width(world.roomWidth);
 
-      world.tileWidth = world.roomWidth / world.tilesWide - 5; // account for border-width of 2px on each side; moz likes 5, other 4
+      world.tileWidth = world.roomWidth / world.tilesWide; // account for border-width of 2px on each side; moz likes 5, other 4
       // the above is usually a decimal; firefox may not like that?
       // we could round the tileWidth, then recalc room width?
       //world.tileWidth = Math.round(world.roomWidth / world.tilesWide - 4); // account for border-width of 2px on each side; moz likes 5, other 4
 
-      $('.tile').width(  world.tileWidth)
-                .height( world.tileWidth);
+      $('.tile').outerWidth(  world.tileWidth)
+                .outerHeight( world.tileWidth);
 
       $('.health').css('margin-top', world.tileWidth);
       $('.credits').css('margin-right', ($(window).width() - world.roomWidth) / 2);
@@ -373,7 +496,8 @@ Pxlqst.World = Class.extend({
 
     world.addRoom = function(oldRoom, direction) {
 
-      var room = new Pxlqst.Room(world, world.tilesWide);
+      var room = new Pxlqst.Room(world, world.tilesWide, 0, 0);
+      room.create();
       world.rooms.push(room);
 
       // only if provided:
@@ -384,19 +508,46 @@ Pxlqst.World = Class.extend({
     }
 
 
-    world.goTo = function(room) {
+    // eventually this should not just create a new room, 
+    // but should look it up from some room index
+    world.move = function(direction) {
 
-      world.room = room;
-      room.draw();
+      var x = 0,
+          y = 0;
 
-      return room;
+      if (direction == 'n') y += world.tilesWide;
+      if (direction == 's') y -= world.tilesWide;
+      if (direction == 'e') x += world.tilesWide;
+      if (direction == 'w') x -= world.tilesWide;
+
+      var oldRoom = world.room;
+
+      oldRoom.move(x, y, function() {
+        oldRoom.hide();
+      });
+
+      world.room = world.room.neighbors[direction];
+
+      world.room.x = -x;
+      world.room.y = -y;
+      world.room.show();
+
+      world.room.move(0, 0, function() {
+        oldRoom.hide();
+      });
+
+      return world.room;
 
     }
 
+    world.room = world.addRoom();
 
-    world.goTo(world.addRoom());
+    // add next room to north
+// figure out how to store rooms:
+    world.northRoom = world.addRoom(world.room, 'n');
+    world.northRoom.hide();
 
-    // add a "choose a profession" intro
+    // add a "choose a profession" intro here
     world.you = world.room.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.room));
 
 
@@ -440,6 +591,8 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
       actor.tile().el.addClass('hit');
 
       actor.health -= strength;
+
+console.log('I was hit and lost ', strength, ', leaving me at ', actor.health);
     
       setTimeout(function() {
     
@@ -649,6 +802,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
     you.health = 10;
     you.held = false;
+    you.world = you.tile().world;
 
     // create health bar. Like a luna bar.
     for (var i = 0; i < you.health; i++) {
@@ -723,6 +877,11 @@ Pxlqst.You = Pxlqst.Actor.extend({
           }
  
         }
+
+        if      (you.y == 0) you.world.move('n');
+        else if (you.y == you.world.tilesWide - 1) you.world.move('s');
+        else if (you.x == 0) you.world.move('w');
+        else if (you.x == you.world.tilesWide - 1) you.world.move('e');
 
         if (you.x == you.destination.x && you.y == you.destination.y) {
 
@@ -886,7 +1045,7 @@ Pxlqst.Sword = Pxlqst.Tool.extend({
     // also, don't enter the tile if it's occupied.
     // move should return true or false!
     //sword.use = function(tile) {
-    //sword.superMove = sword.move;
+    sword.superUse = sword.use;
     sword.use = function(x, y) {
 
       if (sword.room.tile(x, y).has(Pxlqst.Actor)) {

@@ -39,9 +39,8 @@
         var room = world.room;
 
         // doors!
-        // this is wrong; we should separate state from display: create Wall thing 
-        room.tile( 0,  8).remove(room.tile( 0, 8).things[0]);
-        room.tile(11,  0).remove(room.tile(11, 0).things[0]);
+        room.addDoor( 0, 8);
+        room.addDoor( 11, 0);
   
   
         // monsters!

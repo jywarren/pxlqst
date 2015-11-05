@@ -17,18 +17,18 @@ Pxlqst.World = Class.extend({
 
       world.roomWidth = Math.ceil(smallestDimension * 0.85);
 
-      $('.viewport').width( world.roomWidth)
-                    .height(world.roomWidth);
+      $('.viewport, .room').width( world.roomWidth)
+                           .height(world.roomWidth);
 
       $('.health').width(world.roomWidth);
 
-      world.tileWidth = world.roomWidth / world.tilesWide - 5; // account for border-width of 2px on each side; moz likes 5, other 4
+      world.tileWidth = world.roomWidth / world.tilesWide; // account for border-width of 2px on each side; moz likes 5, other 4
       // the above is usually a decimal; firefox may not like that?
       // we could round the tileWidth, then recalc room width?
       //world.tileWidth = Math.round(world.roomWidth / world.tilesWide - 4); // account for border-width of 2px on each side; moz likes 5, other 4
 
-      $('.tile').width(  world.tileWidth)
-                .height( world.tileWidth);
+      $('.tile').outerWidth(  world.tileWidth)
+                .outerHeight( world.tileWidth);
 
       $('.health').css('margin-top', world.tileWidth);
       $('.credits').css('margin-right', ($(window).width() - world.roomWidth) / 2);
@@ -38,7 +38,8 @@ Pxlqst.World = Class.extend({
 
     world.addRoom = function(oldRoom, direction) {
 
-      var room = new Pxlqst.Room(world, world.tilesWide);
+      var room = new Pxlqst.Room(world, world.tilesWide, 0, 0);
+      room.create();
       world.rooms.push(room);
 
       // only if provided:
@@ -49,19 +50,46 @@ Pxlqst.World = Class.extend({
     }
 
 
-    world.goTo = function(room) {
+    // eventually this should not just create a new room, 
+    // but should look it up from some room index
+    world.move = function(direction) {
 
-      world.room = room;
-      room.draw();
+      var x = 0,
+          y = 0;
 
-      return room;
+      if (direction == 'n') y += world.tilesWide;
+      if (direction == 's') y -= world.tilesWide;
+      if (direction == 'e') x += world.tilesWide;
+      if (direction == 'w') x -= world.tilesWide;
+
+      var oldRoom = world.room;
+
+      oldRoom.move(x, y, function() {
+        oldRoom.hide();
+      });
+
+      world.room = world.room.neighbors[direction];
+
+      world.room.x = -x;
+      world.room.y = -y;
+      world.room.show();
+
+      world.room.move(0, 0, function() {
+        oldRoom.hide();
+      });
+
+      return world.room;
 
     }
 
+    world.room = world.addRoom();
 
-    world.goTo(world.addRoom());
+    // add next room to north
+// figure out how to store rooms:
+    world.northRoom = world.addRoom(world.room, 'n');
+    world.northRoom.hide();
 
-    // add a "choose a profession" intro
+    // add a "choose a profession" intro here
     world.you = world.room.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.room));
 
 

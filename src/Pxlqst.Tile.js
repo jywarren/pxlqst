@@ -9,7 +9,8 @@ Pxlqst.Tile = Class.extend({
     tile.x = x;
     tile.y = y;
     tile.room = room;
-    tile.row = $('.row-' + y);
+    tile.world = room.world;
+    tile.row = $('.room-' + tile.room.id + ' .row-' + y);
     tile.row.append("<div class='tile floor column-" + x + " tile-" + (y * room.tilesWide + x) + "'></div>");
     tile.el = $('.tile-' + tile.index);
 
@@ -84,9 +85,9 @@ Pxlqst.Tile = Class.extend({
 
 
     // create a new thing and add it to this tile's things
-    tile.create = function(thing) {
+    tile.create = function(thing, args) {
 
-      thing = new thing(tile.x, tile.y, tile.room);
+      thing = new thing(tile.x, tile.y, tile.room, args);
 
       tile.add(thing);
 

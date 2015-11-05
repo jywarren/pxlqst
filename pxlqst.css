@@ -10,9 +10,11 @@ body {
 .viewport {
   margin: 80px auto 10px;
   overflow: hidden;
+  position: relative;
 }
 
 .room {
+  position: absolute;
 }
 
 .room .tileRow {
@@ -22,6 +24,9 @@ body {
 .tile {
   border: 2px solid #222;
   float: left;
+  -moz-box-sizing:    border-box;
+  -webkit-box-sizing: border-box;
+   box-sizing:        border-box;
 }
 
 .health {
@@ -30,7 +35,6 @@ body {
 
 .credits {
   margin: auto;
-  padding-right: 25px; /* hack, due to Firefox size issues */
   float: right;
 }
 
