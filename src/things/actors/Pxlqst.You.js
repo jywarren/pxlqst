@@ -14,6 +14,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
     you.health = 10;
     you.held = false;
+    you.world = you.tile().world;
 
     // create health bar. Like a luna bar.
     for (var i = 0; i < you.health; i++) {
@@ -88,6 +89,11 @@ Pxlqst.You = Pxlqst.Actor.extend({
           }
  
         }
+
+        if      (you.y == 0) you.world.move('n');
+        else if (you.y == you.world.tilesWide - 1) you.world.move('s');
+        else if (you.x == 0) you.world.move('w');
+        else if (you.x == you.world.tilesWide - 1) you.world.move('e');
 
         if (you.x == you.destination.x && you.y == you.destination.y) {
 

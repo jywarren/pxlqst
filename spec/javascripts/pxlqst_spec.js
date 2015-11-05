@@ -25,9 +25,8 @@ describe("You", function() {
     room = world.room;
  
     // doors!
-    // this is wrong; we should separate state from display: create Wall thing 
-    room.tile( 0,  8).remove(room.tile( 0, 8).things[0]);
-    room.tile(11,  0).remove(room.tile(11, 0).things[0]);
+    room.addDoor( 0, 8);
+    room.addDoor( 11, 0);
     
     // monsters!
     room.tile(12,  3).create(Pxlqst.Monster);
@@ -118,9 +117,9 @@ describe("You", function() {
 
       done();
 
-    },5000); // and we manage the time manually
+    }, 5000); // and we manage the time manually
 
-  },6000);
+  }, 6000);
 
 
   you("decide to try pushing the stone.", function(done) {
@@ -140,6 +139,31 @@ describe("You", function() {
     });
 
   });
+
+
+  // this test fails for two important reasons; in order:
+  // 1. you get stuck on the doorframe
+  // 2. your torch gets stuck on the edge of reality
+  xit("walk through the door to the north.", function(done) {
+
+    narrate("walk through the door to the north.");
+
+    var firstRoomId = world.room.id,
+        northRoomId = world.room.neighbors['n'].id;
+
+    world.you.walkToward(11, 0, function() {
+
+      expect(world.you.x).toBe(11);
+      expect(world.you.y).toBe(0);
+
+      expect(world.room.id).not.toBe(firstRoomId); // you will not be in the same room anymore!
+      expect(world.room.id).toBe(northRoomId); // you will be in the room to the north
+
+      done();
+
+    });
+
+  }, 10000);
 
 
 });

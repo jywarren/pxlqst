@@ -25,5 +25,5 @@ http://pxlqst.com
 
 ##Test adventure
 
-Pxlqst comes with a [test suite](https://github.com/jywarren/pxlqst/issues/4) using [Jasmine](https://jasmine.github.io) which lead the tester on an adventure through the dungeons. To run this test adventure, run `rake jasmine` from the root directory, then navigate to http://localhost:8888. 
+Pxlqst comes with a [test suite](https://github.com/jywarren/pxlqst/issues/4) using [Jasmine](https://jasmine.github.io) which lead the tester on an adventure through the dungeons. To run this test adventure, visit http://pxlqst.com/test or when you're running it locally, open test.html in a browser.
 
