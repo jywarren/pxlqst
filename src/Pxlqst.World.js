@@ -17,15 +17,12 @@ Pxlqst.World = Class.extend({
 
       world.roomWidth = Math.ceil(smallestDimension * 0.85);
 
-      $('.viewport, .room').width( world.roomWidth)
+      $('.viewport, .room').width( world.roomWidth + 3) // extra pixels for Firefox display fix
                            .height(world.roomWidth);
 
       $('.health').width(world.roomWidth);
 
-      world.tileWidth = world.roomWidth / world.tilesWide; // account for border-width of 2px on each side; moz likes 5, other 4
-      // the above is usually a decimal; firefox may not like that?
-      // we could round the tileWidth, then recalc room width?
-      //world.tileWidth = Math.round(world.roomWidth / world.tilesWide - 4); // account for border-width of 2px on each side; moz likes 5, other 4
+      world.tileWidth = world.roomWidth / world.tilesWide;
 
       $('.tile').outerWidth(  world.tileWidth)
                 .outerHeight( world.tileWidth);
