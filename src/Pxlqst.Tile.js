@@ -87,11 +87,21 @@ Pxlqst.Tile = Class.extend({
     // create a new thing and add it to this tile's things
     tile.create = function(thing, args) {
 
-      thing = new thing(tile.x, tile.y, tile.room, args);
+      if (thing instanceof Function) {
 
-      tile.add(thing);
+        thing = new thing(tile.x, tile.y, tile.room, args);
+ 
+        tile.add(thing);
+ 
+        return thing;
 
-      return thing;
+      } else {
+
+        console.log(thing + ' is not a known class.');
+
+        return false;
+
+      }
 
     }
 

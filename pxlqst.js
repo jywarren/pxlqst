@@ -182,6 +182,26 @@ Pxlqst.Room = Class.extend({
     }
 
 
+    // reads a map string and key; see README for formatting
+    room.read = function(map, key) {
+
+      map.forEach(function(row, y) {
+
+        row.split('').forEach(function(letter, x) {
+
+          if (key[letter] && key[letter] != ' ') {
+
+            room.tile(x, y).create(key[letter]);
+
+          }
+
+        });
+
+      });
+
+    }
+
+
     // constructs room  out of Tiles, with outer wall
     room.create = function() {
 
@@ -194,8 +214,6 @@ Pxlqst.Room = Class.extend({
           var tile = new Pxlqst.Tile(x, y, room);
  
           room.tiles.push(tile);
- 
-          if (x == 0 || x == 15 || y == 0 || y == 15) tile.create(Pxlqst.Wall);
   
         }
   
@@ -228,6 +246,7 @@ Pxlqst.Room = Class.extend({
 
 
     // create a door to the neighboring room, and a door leading back
+    // Break out door into subclass
     room.addDoor = function(x, y) {
 
       var direction, counterpart, neighbor;
@@ -247,6 +266,7 @@ Pxlqst.Room = Class.extend({
       }
 
       if (room.neighbors[direction]) {
+
 console.log('room to ',direction);
         neighbor = room.neighbors[direction];
         counterpart = neighbor.tile(counterpart.x, counterpart.y);
@@ -398,11 +418,21 @@ Pxlqst.Tile = Class.extend({
     // create a new thing and add it to this tile's things
     tile.create = function(thing, args) {
 
-      thing = new thing(tile.x, tile.y, tile.room, args);
+      if (thing instanceof Function) {
 
-      tile.add(thing);
+        thing = new thing(tile.x, tile.y, tile.room, args);
+ 
+        tile.add(thing);
+ 
+        return thing;
 
-      return thing;
+      } else {
+
+        console.log(thing + ' is not a known class.');
+
+        return false;
+
+      }
 
     }
 
@@ -674,50 +704,6 @@ Pxlqst.Wall = Pxlqst.Thing.extend({
 
 });
 
-Pxlqst.Monster = Pxlqst.Enemy.extend({
-
-  enemy: true,
-
-  init: function(x, y, room) {
-
-    // basic setup
-    this._super(x, y, room);
-
-    var monster = this;
-
-    monster.cssClass = 'monster';
-
-
-    monster.wander = function() {
-
-      var newx = monster.x, newy = monster.y;
-
-      // up/down OR left/right
-      if (Math.random() > 0.5) newx = monster.x + parseInt(Math.random() * 3) - 1;
-      else                     newy = monster.y + parseInt(Math.random() * 3) - 1;
-
-      monster.confineToRoom(newx, newy);
-
-      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
-
-        // try to hit You, but if not, go to newx, newy
-        if (!monster.tryHit(newx, newy)) {
-          monster.move(newx, newy);  
-        }
-
-      }
- 
-    }
-
-
-    monster.interval = setInterval(monster.wander, 2000);
-
-    return monster;
-
-  }
-
-});
-
 Pxlqst.Rat = Pxlqst.Enemy.extend({
 
   running: false,
@@ -897,9 +883,9 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
     you.eat = function(food) {
 
-      food.tile().remove(food);
-
       you.heal(food.nutrition);
+
+      food.tile().remove(food);
 
     }
 
@@ -952,6 +938,50 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
 
     you.interval = setInterval(you.walk, 500);
+
+  }
+
+});
+
+Pxlqst.Zombie = Pxlqst.Enemy.extend({
+
+  enemy: true,
+
+  init: function(x, y, room) {
+
+    // basic setup
+    this._super(x, y, room);
+
+    var zombie = this;
+
+    zombie.cssClass = 'zombie';
+
+
+    zombie.wander = function() {
+
+      var newx = zombie.x, newy = zombie.y;
+
+      // up/down OR left/right
+      if (Math.random() > 0.5) newx = zombie.x + parseInt(Math.random() * 3) - 1;
+      else                     newy = zombie.y + parseInt(Math.random() * 3) - 1;
+
+      zombie.confineToRoom(newx, newy);
+
+      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
+
+        // try to hit You, but if not, go to newx, newy
+        if (!zombie.tryHit(newx, newy)) {
+          zombie.move(newx, newy);  
+        }
+
+      }
+ 
+    }
+
+
+    zombie.interval = setInterval(zombie.wander, 2000);
+
+    return zombie;
 
   }
 

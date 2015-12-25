@@ -2,7 +2,7 @@
 
 A pixel quest.
 
-http://pxlqst.com
+Try it at http://pxlqst.com
 
 
 ##Rules
@@ -27,3 +27,72 @@ http://pxlqst.com
 
 Pxlqst comes with a [test suite](https://github.com/jywarren/pxlqst/issues/4) using [Jasmine](https://jasmine.github.io) which lead the tester on an adventure through the dungeons. To run this test adventure, visit http://pxlqst.com/test or when you're running it locally, open test.html in a browser.
 
+****
+
+##Game setup
+
+See the index.html file for basic DOM layout; at minimum, you'll need to include jquery and the pxlqst CSS and JS files:
+
+````html
+
+<link href="pxlqst.css" rel="stylesheet">
+<script src="bower_components/jquery/dist/jquery.min.js"></script>
+<script src="pxlqst.js"></script>
+
+<script>
+
+  var world = new Pxlqst.World();
+
+</script>
+
+````
+
+But this will result in an empty room, in an empty world. How sad! Read on:
+
+##Map editing
+
+To create maps, you must define your map key (an associative array defining your tile types) and feed the Room a map object, which is an array of tile rows using the tile type symbols you defined in the key. Sound hard? Look at this simple example:
+
+````js
+
+var key = {
+
+  ' ': false, // floor
+  '0': Pxlqst.Wall,
+  'X': Pxlqst.You,
+  'Z': Pxlqst.Zombie,
+  'r': Pxlqst.Rat,
+  't': Pxlqst.Torch,
+  'S': Pxlqst.Stone,
+  's': Pxlqst.Sword,
+  'c': Pxlqst.Cake
+
+}
+
+
+var map = [
+
+// 0123456789abcdef  
+  '00000000 0000000', // 0
+  '0              0', // 1
+  '0              0', // 2
+  '0   r       Z  0', // 3
+  '0              0', // 4
+  '0   s          0', // 5
+  '0               ', // 6
+  '0              0', // 7
+  '0   t          0', // 8
+  '0          r   0', // 9
+  '0              0', // a
+  '   r           0', // b
+  '0  S         c 0', // c
+  '0              0', // d
+  '0              0', // e
+  '0000 00000000000'  // f
+
+]
+
+// read both the map and the key into the room:
+world.room.read(map, key);
+
+````
