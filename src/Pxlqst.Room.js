@@ -113,6 +113,26 @@ Pxlqst.Room = Class.extend({
     }
 
 
+    // reads a map string and key; see README for formatting
+    room.read = function(map, key) {
+
+      map.forEach(function(row, y) {
+
+        row.split('').forEach(function(letter, x) {
+
+          if (key[letter] && key[letter] != ' ') {
+
+            room.tile(x, y).create(key[letter]);
+
+          }
+
+        });
+
+      });
+
+    }
+
+
     // constructs room  out of Tiles, with outer wall
     room.create = function() {
 
@@ -125,8 +145,6 @@ Pxlqst.Room = Class.extend({
           var tile = new Pxlqst.Tile(x, y, room);
  
           room.tiles.push(tile);
- 
-          if (x == 0 || x == 15 || y == 0 || y == 15) tile.create(Pxlqst.Wall);
   
         }
   
@@ -159,6 +177,7 @@ Pxlqst.Room = Class.extend({
 
 
     // create a door to the neighboring room, and a door leading back
+    // Break out door into subclass
     room.addDoor = function(x, y) {
 
       var direction, counterpart, neighbor;
@@ -178,6 +197,7 @@ Pxlqst.Room = Class.extend({
       }
 
       if (room.neighbors[direction]) {
+
 console.log('room to ',direction);
         neighbor = room.neighbors[direction];
         counterpart = neighbor.tile(counterpart.x, counterpart.y);

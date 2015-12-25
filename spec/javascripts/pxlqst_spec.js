@@ -1,6 +1,6 @@
-describe("You", function() {
+var world, room, you = it;
 
-  var world, room, you = it;
+describe("You", function() {
 
   var narrate = function(txt, subject) {
 
@@ -24,28 +24,44 @@ describe("You", function() {
  
     room = world.room;
  
-    // doors!
-    room.addDoor( 0, 8);
-    room.addDoor( 11, 0);
-    
-    // monsters!
-    room.tile(12,  3).create(Pxlqst.Monster);
-    
-    // rats!
-    room.tile(9, 11).create(Pxlqst.Rat);
-    room.tile(4,  3).create(Pxlqst.Rat);
-    
-    // torch!
-    room.tile( 4,  8).create(Pxlqst.Torch);
- 
-    // cake!
-    room.tile(13, 12).create(Pxlqst.Cake);
- 
-    // stone!
-    room.tile( 3, 12).create(Pxlqst.Stone);
- 
-    // sword!
-    room.tile( 4,  5).create(Pxlqst.Sword);
+    var key = {
+  
+      ' ': false, // floor
+      '0': Pxlqst.Wall,
+      'X': Pxlqst.You,
+      'Z': Pxlqst.Zombie,
+      'r': Pxlqst.Rat,
+      't': Pxlqst.Torch,
+      'S': Pxlqst.Stone,
+      's': Pxlqst.Sword,
+      'c': Pxlqst.Cake
+  
+    }
+  
+  
+    var map = [
+
+    // 0123456789abcdef  
+      '00000000 0000000', // 0
+      '0              0', // 1
+      '0              0', // 2
+      '0   r       Z  0', // 3
+      '0              0', // 4
+      '0   s          0', // 5
+      '0               ', // 6
+      '0              0', // 7
+      '0   t          0', // 8
+      '0          r   0', // 9
+      '0              0', // a
+      '   r           0', // b
+      '0  S           0', // c
+      '0              0', // d
+      '0              0', // e
+      '0000 00000000000'  // f
+  
+    ]
+
+    room.read(map, key);
 
     // disable cleanUp() method to persist the fixture across specs
     jasmine.getFixtures().cleanUp = function() { 
@@ -57,7 +73,7 @@ describe("You", function() {
 
   afterEach(function() {
 
-    narrate('', false);
+    narrate('', false); // clear the narration element
 
   });
 
@@ -141,6 +157,37 @@ describe("You", function() {
   });
 
 
+  you("see a cake appear behind you, go over and eat it, and feel better.", function(done) {
+
+    narrate("see a cake appear in front of you, go over and eat it, and feel better.");
+ 
+    expect(world.you.health).toBe(10);
+    expect(room.tile(13, 12).has(Pxlqst.Cake)).toBe(false);
+
+    // cake!
+    room.tile(13, 12).create(Pxlqst.Cake);
+
+    expect(room.tile(13, 12).has(Pxlqst.Cake)).not.toBe(false);
+
+    world.you.walkToward(13, 12, function() {
+
+      expect(world.you.x).toBe(13);
+      expect(world.you.y).toBe(12);
+      expect(world.you.health).toBe(12);
+
+      setTimeout(function() {
+
+        expect(room.tile(13, 12).has(Pxlqst.Cake)).toBe(false);
+
+        done();
+
+      }, 1000);
+
+    });
+
+  }, 7000);
+
+
   // this test fails for two important reasons; in order:
   // 1. you get stuck on the doorframe
   // 2. your torch gets stuck on the edge of reality
@@ -151,9 +198,9 @@ describe("You", function() {
     var firstRoomId = world.room.id,
         northRoomId = world.room.neighbors['n'].id;
 
-    world.you.walkToward(11, 0, function() {
+    world.you.walkToward(8, 0, function() {
 
-      expect(world.you.x).toBe(11);
+      expect(world.you.x).toBe(8);
       expect(world.you.y).toBe(0);
 
       expect(world.room.id).not.toBe(firstRoomId); // you will not be in the same room anymore!

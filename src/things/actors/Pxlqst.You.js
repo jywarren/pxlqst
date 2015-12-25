@@ -112,9 +112,9 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
     you.eat = function(food) {
 
-      food.tile().remove(food);
-
       you.heal(food.nutrition);
+
+      food.tile().remove(food);
 
     }
 

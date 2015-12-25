@@ -6,12 +6,8 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="bower_components/bootstrap-css/css/bootstrap.min.css" rel="stylesheet">
-    <link href="bower_components/fontawesome/css/font-awesome.min.css" rel="stylesheet">
     <link href="pxlqst.css" rel="stylesheet">
-
     <script src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="bower_components/bootstrap-css/js/bootstrap.min.js"></script>
     <script src="pxlqst.js"></script>
 
   </head>
@@ -36,37 +32,59 @@
 
         world = new Pxlqst.World();
 
-        var room = world.room;
+        var key = {
+  
+          ' ': false, // floor
+          '0': Pxlqst.Wall,
+          'X': Pxlqst.You,
+          'Z': Pxlqst.Zombie,
+          'r': Pxlqst.Rat,
+          't': Pxlqst.Torch,
+          'S': Pxlqst.Stone,
+          's': Pxlqst.Sword,
+          'c': Pxlqst.Cake
+  
+        }
+  
+  
+        var map = [
 
-        // doors!
-        room.addDoor( 0, 8);
-        room.addDoor( 11, 0);
+        // 0123456789abcdef  
+          '00000000 0000000', // 0
+          '0              0', // 1
+          '0              0', // 2
+          '0   r       Z  0', // 3
+          '0              0', // 4
+          '0   s          0', // 5
+          '0               ', // 6
+          '0              0', // 7
+          '0   t          0', // 8
+          '0          r   0', // 9
+          '0              0', // a
+          '   r           0', // b
+          '0  S         c 0', // c
+          '0              0', // d
+          '0              0', // e
+          '0000 00000000000'  // f
   
-  
-        // monsters!
-        room.tile(12,  3).create(Pxlqst.Monster);
-  
-  
-        // rats!
-        room.tile(9, 11).create(Pxlqst.Rat);
-        room.tile(4,  3).create(Pxlqst.Rat);
-  
-  
-        // torch!
-        room.tile( 4,  8).create(Pxlqst.Torch);
+        ]
 
-  
-        // cake!
-        room.tile(13, 12).create(Pxlqst.Cake);
+        world.room.read(map, key);
 
-  
-        // stone!
-        room.tile( 3, 12).create(Pxlqst.Stone);
+        /*
 
+        // we can also add items explicitly rather than via the map reader:
   
-        // sword!
-        room.tile( 4,  5).create(Pxlqst.Sword);
+        // Zombies!
+        world.room.tile(12,  3).create(Pxlqst.Monster);
   
+        // Rats!
+        world.room.tile(9, 11).create(Pxlqst.Rat);
+
+        // Doors!
+        world.room.addDoor( 0, 8);
+
+        */  
 
       });
 
