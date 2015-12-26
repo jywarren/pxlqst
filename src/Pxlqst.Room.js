@@ -1,16 +1,5 @@
 Pxlqst.Room = Class.extend({
 
-  tiles: [],
-
-  neighbors: {
-
-    n: undefined,
-    e: undefined,
-    s: undefined,
-    w: undefined
-
-  },
-
 
   // x, y is measured in Pxls
   init: function(world, tilesWide, x, y, id) {
@@ -18,6 +7,7 @@ Pxlqst.Room = Class.extend({
     var room = this;
 
     room.world = world; 
+    room.tiles = []; 
     room.tilesWide = tilesWide; 
     room.id = id || parseInt(Math.random() * 10000);
 
@@ -26,6 +16,30 @@ Pxlqst.Room = Class.extend({
 
     $('.viewport').append('<div class="room room-' + room.id + '"></div>');
     room.el = $('.viewport .room-' + room.id)
+
+    // default key:
+    room.key = {
+    
+      ' ': false, // floor
+      '0': Pxlqst.Wall,
+      'X': Pxlqst.You,
+      'Z': Pxlqst.Zombie,
+      'r': Pxlqst.Rat,
+      't': Pxlqst.Torch,
+      'S': Pxlqst.Stone,
+      's': Pxlqst.Sword,
+      'c': Pxlqst.Cake
+    
+    };
+
+    room.neighbors = {
+ 
+      n: undefined,
+      e: undefined,
+      s: undefined,
+      w: undefined
+ 
+    }
 
     // will need refreshing on screen/window resize:
     room.el.width( world.roomWidth)
@@ -113,16 +127,17 @@ Pxlqst.Room = Class.extend({
     }
 
 
-    // reads a map string and key; see README for formatting
-    room.read = function(map, key) {
+    // Reads a <map> array of tile symbols using room.key lookup; 
+    // see README for formatting.
+    room.read = function(map) {
 
       map.forEach(function(row, y) {
 
         row.split('').forEach(function(letter, x) {
 
-          if (key[letter] && key[letter] != ' ') {
+          if (room.key[letter] && room.key[letter] != ' ') {
 
-            room.tile(x, y).create(key[letter]);
+            room.tile(x, y).create(room.key[letter]);
 
           }
 
@@ -137,14 +152,16 @@ Pxlqst.Room = Class.extend({
     room.create = function() {
 
       for (var y = 0; y < room.tilesWide; y++) {
-  
+
         room.el.append("<div class='tileRow row-" + y + "'></div>");
   
         for (var x = 0; x < room.tilesWide; x++) {
   
           var tile = new Pxlqst.Tile(x, y, room);
  
+var ln = room.tiles.length;
           room.tiles.push(tile);
+console.log(ln, room.tiles.length, room.id);
   
         }
   

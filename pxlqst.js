@@ -69,17 +69,6 @@ Pxlqst = {};
 
 Pxlqst.Room = Class.extend({
 
-  tiles: [],
-
-  neighbors: {
-
-    n: undefined,
-    e: undefined,
-    s: undefined,
-    w: undefined
-
-  },
-
 
   // x, y is measured in Pxls
   init: function(world, tilesWide, x, y, id) {
@@ -87,6 +76,7 @@ Pxlqst.Room = Class.extend({
     var room = this;
 
     room.world = world; 
+    room.tiles = []; 
     room.tilesWide = tilesWide; 
     room.id = id || parseInt(Math.random() * 10000);
 
@@ -95,6 +85,30 @@ Pxlqst.Room = Class.extend({
 
     $('.viewport').append('<div class="room room-' + room.id + '"></div>');
     room.el = $('.viewport .room-' + room.id)
+
+    // default key:
+    room.key = {
+    
+      ' ': false, // floor
+      '0': Pxlqst.Wall,
+      'X': Pxlqst.You,
+      'Z': Pxlqst.Zombie,
+      'r': Pxlqst.Rat,
+      't': Pxlqst.Torch,
+      'S': Pxlqst.Stone,
+      's': Pxlqst.Sword,
+      'c': Pxlqst.Cake
+    
+    };
+
+    room.neighbors = {
+ 
+      n: undefined,
+      e: undefined,
+      s: undefined,
+      w: undefined
+ 
+    }
 
     // will need refreshing on screen/window resize:
     room.el.width( world.roomWidth)
@@ -182,16 +196,17 @@ Pxlqst.Room = Class.extend({
     }
 
 
-    // reads a map string and key; see README for formatting
-    room.read = function(map, key) {
+    // Reads a <map> array of tile symbols using room.key lookup; 
+    // see README for formatting.
+    room.read = function(map) {
 
       map.forEach(function(row, y) {
 
         row.split('').forEach(function(letter, x) {
 
-          if (key[letter] && key[letter] != ' ') {
+          if (room.key[letter] && room.key[letter] != ' ') {
 
-            room.tile(x, y).create(key[letter]);
+            room.tile(x, y).create(room.key[letter]);
 
           }
 
@@ -206,14 +221,16 @@ Pxlqst.Room = Class.extend({
     room.create = function() {
 
       for (var y = 0; y < room.tilesWide; y++) {
-  
+
         room.el.append("<div class='tileRow row-" + y + "'></div>");
   
         for (var x = 0; x < room.tilesWide; x++) {
   
           var tile = new Pxlqst.Tile(x, y, room);
  
+var ln = room.tiles.length;
           room.tiles.push(tile);
+console.log(ln, room.tiles.length, room.id);
   
         }
   
@@ -342,8 +359,8 @@ Pxlqst.Tile = Class.extend({
     tile.room = room;
     tile.world = room.world;
     tile.row = $('.room-' + tile.room.id + ' .row-' + y);
-    tile.row.append("<div class='tile floor column-" + x + " tile-" + (y * room.tilesWide + x) + "'></div>");
-    tile.el = $('.tile-' + tile.index);
+    tile.row.append("<div class='tile floor column-" + x + " tile-" + room.id + "-" + tile.index + "'></div>");
+    tile.el = $('.tile-' + room.id + '-' + tile.index);
 
 
     tile.el.click(function(e) {
@@ -523,20 +540,23 @@ Pxlqst.World = Class.extend({
 
     world.addRoom = function(oldRoom, direction) {
 
-      var room = new Pxlqst.Room(world, world.tilesWide, 0, 0);
-      room.create();
-      world.rooms.push(room);
+      var newRoom = new Pxlqst.Room(world, world.tilesWide, 0, 0);
+      newRoom.create();
+      world.rooms.push(newRoom);
 
       // only if provided:
-      if (oldRoom && direction) oldRoom.attach(room, direction);
+      if (oldRoom && direction) oldRoom.attach(newRoom, direction);
 
-      return room;
+      world.resize(); // refresh
+
+      return newRoom;
 
     }
 
 
-    // eventually this should not just create a new room, 
-    // but should look it up from some room index
+    // Accepts 'n' 'e' 's' or 'w' as a <direction>
+    // Eventually this should not just create a new room, 
+    // but should look it up from some room index.
     world.move = function(direction) {
 
       var x = 0,
@@ -563,20 +583,35 @@ Pxlqst.World = Class.extend({
         oldRoom.hide();
       });
 
+      // record old position:
+      var you_x = world.you.x,
+          you_y = world.you.y;
+
+      // adjust position:
+      if (direction == 'n') you_y += world.tilesWide - 1;
+      if (direction == 's') you_y -= world.tilesWide - 1;
+      if (direction == 'e') you_x -= world.tilesWide - 1;
+      if (direction == 'w') you_x += world.tilesWide - 1;
+
+      // remove You from old room:
+      world.you.tile().remove(world.you);
+
+      // add to new room, in new location:
+console.log(world.room.tile(you_x, you_y), you_x, you_y);
+      world.room.tile(you_x, you_y).add(world.you);
+
+// sleep everything from old room!
+
+
+
       return world.room;
 
     }
 
     world.room = world.addRoom();
 
-    // add next room to north
-// figure out how to store rooms:
-    world.northRoom = world.addRoom(world.room, 'n');
-    world.northRoom.hide();
-
     // add a "choose a profession" intro here
     world.you = world.room.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.room));
-
 
     world.resize();
 
@@ -861,9 +896,11 @@ Pxlqst.You = Pxlqst.Actor.extend({
  
         }
 
-        if      (you.y == 0) you.world.move('n');
+        // move this logic into Door:
+
+        if      (you.y == 0)                       you.world.move('n');
         else if (you.y == you.world.tilesWide - 1) you.world.move('s');
-        else if (you.x == 0) you.world.move('w');
+        else if (you.x == 0)                       you.world.move('w');
         else if (you.x == you.world.tilesWide - 1) you.world.move('e');
 
         if (you.x == you.destination.x && you.y == you.destination.y) {

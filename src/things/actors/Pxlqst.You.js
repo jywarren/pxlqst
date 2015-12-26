@@ -90,9 +90,11 @@ Pxlqst.You = Pxlqst.Actor.extend({
  
         }
 
-        if      (you.y == 0) you.world.move('n');
+        // move this logic into Door:
+
+        if      (you.y == 0)                       you.world.move('n');
         else if (you.y == you.world.tilesWide - 1) you.world.move('s');
-        else if (you.x == 0) you.world.move('w');
+        else if (you.x == 0)                       you.world.move('w');
         else if (you.x == you.world.tilesWide - 1) you.world.move('e');
 
         if (you.x == you.destination.x && you.y == you.destination.y) {

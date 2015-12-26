@@ -11,8 +11,8 @@ Pxlqst.Tile = Class.extend({
     tile.room = room;
     tile.world = room.world;
     tile.row = $('.room-' + tile.room.id + ' .row-' + y);
-    tile.row.append("<div class='tile floor column-" + x + " tile-" + (y * room.tilesWide + x) + "'></div>");
-    tile.el = $('.tile-' + tile.index);
+    tile.row.append("<div class='tile floor column-" + x + " tile-" + room.id + "-" + tile.index + "'></div>");
+    tile.el = $('.tile-' + room.id + '-' + tile.index);
 
 
     tile.el.click(function(e) {
