@@ -7,7 +7,6 @@ Pxlqst.World = Class.extend({
   init: function() {
 
     var world = this;
-    console.log('world created');
 
 
     world.resize = function() {
@@ -35,20 +34,23 @@ Pxlqst.World = Class.extend({
 
     world.addRoom = function(oldRoom, direction) {
 
-      var room = new Pxlqst.Room(world, world.tilesWide, 0, 0);
-      room.create();
-      world.rooms.push(room);
+      var newRoom = new Pxlqst.Room(world, world.tilesWide, 0, 0);
+      newRoom.create();
+      world.rooms.push(newRoom);
 
       // only if provided:
-      if (oldRoom && direction) oldRoom.attach(room, direction);
+      if (oldRoom && direction) oldRoom.attach(newRoom, direction);
 
-      return room;
+      world.resize(); // refresh
+
+      return newRoom;
 
     }
 
 
-    // eventually this should not just create a new room, 
-    // but should look it up from some room index
+    // Accepts 'n' 'e' 's' or 'w' as a <direction>
+    // Eventually this should not just create a new room, 
+    // but should look it up from some room index.
     world.move = function(direction) {
 
       var x = 0,
@@ -71,28 +73,57 @@ Pxlqst.World = Class.extend({
       world.room.y = -y;
       world.room.show();
 
+      oldRoom.sleep();
+
+      // record old position:
+      var you_x = world.you.x,
+          you_y = world.you.y;
+
+      // adjust position:
+      if (direction == 'n') you_y += world.tilesWide - 1;
+      if (direction == 's') you_y -= world.tilesWide - 1;
+      if (direction == 'e') you_x -= world.tilesWide - 1;
+      if (direction == 'w') you_x += world.tilesWide - 1;
+
+      // remove You from old room:
+      world.you.tile().remove(world.you);
+
+      // add You to new room, in new location:
+      world.room.tile(you_x, you_y).add(world.you);
+
+      // adjust destination
+      world.you.destination.x = world.you.x; 
+      world.you.destination.y = world.you.y; 
+
+      // perform the move:
       world.room.move(0, 0, function() {
+
         oldRoom.hide();
+
+        // re-assign you.room:
+        world.you.room = world.room;
+
+        world.room.wake();
+
+        // adjust destination to new room
+        world.you.destination.x = you_x; 
+        world.you.destination.y = you_y; 
+
       });
 
       return world.room;
 
     }
 
-    world.room = world.addRoom();
 
-    // add next room to north
-// figure out how to store rooms:
-    world.northRoom = world.addRoom(world.room, 'n');
-    world.northRoom.hide();
+    world.room = world.addRoom();
 
     // add a "choose a profession" intro here
     world.you = world.room.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.room));
 
-
-    world.resize();
-
     $(window).on('resize', world.resize);
+
+    console.log('World created.');
 
     return world;
 

@@ -49,9 +49,42 @@ See the index.html file for basic DOM layout; at minimum, you'll need to include
 
 But this will result in an empty room, in an empty world. How sad! Read on:
 
-##Map editing
+##Map editor
 
-To create maps, you must define your map key (an associative array defining your tile types) and feed the Room a map object, which is an array of tile rows using the tile type symbols you defined in the key. Sound hard? Look at this simple example:
+To create maps, feed the Room a map object, which is an array of (string) tile rows using the tile type symbols defined in the key (see below). Maps are (by default) 16x16, obviously. Sound hard? Look at this simple example:
+
+````js
+
+var map = [
+
+// 0123456789abcdef  
+  '00000000 0000000', // 0
+  '0              0', // 1
+  '0              0', // 2
+  '0   r       Z  0', // 3   <= a Rat and a Zombie
+  '0              0', // 4  
+  '0   s          0', // 5   <= a Sword
+  '0               ', // 6   <= a Door indicated by an opening in the Wall
+  '0              0', // 7  
+  '0   t          0', // 8   <= a Torch
+  '0          r   0', // 9   <= another Rat
+  '0              0', // a  
+  '   r           0', // b   <= a third Rat
+  '0  S         c 0', // c   <= a Stone and a Cake
+  '0              0', // d
+  '0              0', // e
+  '0000 00000000000'  // f
+
+]
+
+// read the map into the room:
+world.room.read(map);
+
+````
+
+##Tile keys
+
+A map key is an associative array defining your tile types. The default tile key is as follows, but you can override or add to it by editing any `room.key` -- keys are kept by room so that different tilesets or appearances can be displayed in different rooms. 
 
 ````js
 
@@ -68,31 +101,5 @@ var key = {
   'c': Pxlqst.Cake
 
 }
-
-
-var map = [
-
-// 0123456789abcdef  
-  '00000000 0000000', // 0
-  '0              0', // 1
-  '0              0', // 2
-  '0   r       Z  0', // 3
-  '0              0', // 4
-  '0   s          0', // 5
-  '0               ', // 6
-  '0              0', // 7
-  '0   t          0', // 8
-  '0          r   0', // 9
-  '0              0', // a
-  '   r           0', // b
-  '0  S         c 0', // c
-  '0              0', // d
-  '0              0', // e
-  '0000 00000000000'  // f
-
-]
-
-// read both the map and the key into the room:
-world.room.read(map, key);
 
 ````

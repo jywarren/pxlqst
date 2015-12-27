@@ -30,61 +30,62 @@
       window.addEventListener('load', function(e) {
 
 
-        world = new Pxlqst.World();
-
-        var key = {
-  
-          ' ': false, // floor
-          '0': Pxlqst.Wall,
-          'X': Pxlqst.You,
-          'Z': Pxlqst.Zombie,
-          'r': Pxlqst.Rat,
-          't': Pxlqst.Torch,
-          'S': Pxlqst.Stone,
-          's': Pxlqst.Sword,
-          'c': Pxlqst.Cake
-  
-        }
-  
+        world = new Pxlqst.World(); 
   
         var map = [
 
-        // 0123456789abcdef  
-          '00000000 0000000', // 0
-          '0              0', // 1
-          '0              0', // 2
-          '0   r       Z  0', // 3
-          '0              0', // 4
-          '0   s          0', // 5
-          '0               ', // 6
-          '0              0', // 7
-          '0   t          0', // 8
-          '0          r   0', // 9
-          '0              0', // a
-          '   r           0', // b
-          '0  S         c 0', // c
-          '0              0', // d
-          '0              0', // e
-          '0000 00000000000'  // f
+       // 0123456789abcdef  
+         '00000000 0000000', // 0
+         '0              0', // 1
+         '0              0', // 2
+         '0   r       Z  0', // 3   <= a Rat and a Zombie
+         '0              0', // 4  
+         '0   s          0', // 5   <= a Sword
+         '0               ', // 6   <= a Door indicated by an opening in the Wall
+         '0              0', // 7  
+         '0   t          0', // 8   <= a Torch
+         '0          r   0', // 9   <= another Rat
+         '0              0', // a  
+         '   r           0', // b   <= a third Rat
+         '0  S         c 0', // c   <= a Stone and a Cake
+         '0              0', // d
+         '0              0', // e
+         '0000 00000000000'  // f
+       
+        ];
+
+        world.room.read(map);
+
+        // add next room to north
   
-        ]
+        var map2 = [
 
-        world.room.read(map, key);
+       // 0123456789abcdef  
+         '0000000000000000', // 0
+         '0              0', // 1
+         '0   t      t   0', // 2
+         '0   r          0', // 3   <= a Rat and a Zombie
+         '0              0', // 4  
+         '0   000  000   0', // 5   <= a Sword
+         '0   0      0   0', // 6   <= a Door indicated by an opening in the Wall
+         '0   0    r 0   0', // 7  
+         '0   0      0   0', // 8   <= a Torch
+         '0   0r     0   0', // 9   <= another Rat
+         '0   0 cccc 0   0', // a  
+         '0   00000000   0', // b   <= a third Rat
+         '0              0', // c   <= a Stone and a Cake
+         '0      Z       0', // d
+         '0              0', // e
+         '00000000 0000000'  // f
+       
+        ];
 
-        /*
+        world.northRoom = world.addRoom(world.room, 'n');
+        world.northRoom.read(map2);
+        world.northRoom.hide();
 
-        // we can also add items explicitly rather than via the map reader:
-  
-        // Zombies!
-        world.room.tile(12,  3).create(Pxlqst.Monster);
-  
-        // Rats!
-        world.room.tile(9, 11).create(Pxlqst.Rat);
+        world.room.wake();
 
-        // Doors!
-        world.room.addDoor( 0, 8);
-
-        */  
 
       });
 

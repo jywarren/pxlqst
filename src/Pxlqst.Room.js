@@ -1,16 +1,5 @@
 Pxlqst.Room = Class.extend({
 
-  tiles: [],
-
-  neighbors: {
-
-    n: undefined,
-    e: undefined,
-    s: undefined,
-    w: undefined
-
-  },
-
 
   // x, y is measured in Pxls
   init: function(world, tilesWide, x, y, id) {
@@ -18,6 +7,7 @@ Pxlqst.Room = Class.extend({
     var room = this;
 
     room.world = world; 
+    room.tiles = []; 
     room.tilesWide = tilesWide; 
     room.id = id || parseInt(Math.random() * 10000);
 
@@ -26,6 +16,30 @@ Pxlqst.Room = Class.extend({
 
     $('.viewport').append('<div class="room room-' + room.id + '"></div>');
     room.el = $('.viewport .room-' + room.id)
+
+    // default key:
+    room.key = {
+    
+      ' ': false, // floor
+      '0': Pxlqst.Wall,
+      'X': Pxlqst.You,
+      'Z': Pxlqst.Zombie,
+      'r': Pxlqst.Rat,
+      't': Pxlqst.Torch,
+      'S': Pxlqst.Stone,
+      's': Pxlqst.Sword,
+      'c': Pxlqst.Cake
+    
+    };
+
+    room.neighbors = {
+ 
+      n: undefined,
+      e: undefined,
+      s: undefined,
+      w: undefined
+ 
+    }
 
     // will need refreshing on screen/window resize:
     room.el.width( world.roomWidth)
@@ -42,6 +56,21 @@ Pxlqst.Room = Class.extend({
     room.tile = function(x, y) {
 
       return room.tiles[y * room.tilesWide + x];
+
+    }
+
+
+    room.things = function() {
+
+      var things = [];
+
+      room.tiles.forEach(function(tile) {
+
+        things = things.concat(tile.things);
+
+      });
+
+      return things;
 
     }
 
@@ -74,9 +103,9 @@ Pxlqst.Room = Class.extend({
     }
 
 
-    // shift by one pixel width towards room.destination
-    // this needs to be synchronized with neighboring room...
-    room.pan = function() {
+    // Shift by one pixel width towards room.destination;
+    // execute callback() if arrived.
+    room.pan = function(callback) {
 
       if (Math.abs(room.destination.x - room.x) > Math.abs(room.destination.y - room.y)) {
         if (room.destination.x > room.x) room.x += 1;
@@ -90,7 +119,10 @@ Pxlqst.Room = Class.extend({
       room.el.css('top',  room.y * (room.world.roomWidth / world.tilesWide));
 
       if (room.interval && room.destination.x == room.x && room.destination.y == room.y) {
+
         clearInterval(room.interval);
+        if (callback) callback();
+
       }
 
     }
@@ -106,23 +138,24 @@ Pxlqst.Room = Class.extend({
 
       room.interval = setInterval(function() {
 
-        room.pan();
+        room.pan(callback);
 
       }, 100);
 
     }
 
 
-    // reads a map string and key; see README for formatting
-    room.read = function(map, key) {
+    // Reads a <map> array of tile symbols using room.key lookup; 
+    // see README for formatting.
+    room.read = function(map) {
 
       map.forEach(function(row, y) {
 
         row.split('').forEach(function(letter, x) {
 
-          if (key[letter] && key[letter] != ' ') {
+          if (room.key[letter] && room.key[letter] != ' ') {
 
-            room.tile(x, y).create(key[letter]);
+            room.tile(x, y).create(room.key[letter]);
 
           }
 
@@ -137,7 +170,7 @@ Pxlqst.Room = Class.extend({
     room.create = function() {
 
       for (var y = 0; y < room.tilesWide; y++) {
-  
+
         room.el.append("<div class='tileRow row-" + y + "'></div>");
   
         for (var x = 0; x < room.tilesWide; x++) {
@@ -176,6 +209,30 @@ Pxlqst.Room = Class.extend({
     }
 
 
+    // activate all things
+    room.wake = function() {
+
+      room.things().forEach(function(thing) {
+
+        if (thing.wake) thing.wake();
+
+      });
+
+    }
+
+
+    // deactivate all things
+    room.sleep = function() {
+
+      room.things().forEach(function(thing) {
+
+        if (thing.sleep) thing.sleep();
+
+      });
+
+    }
+
+
     // create a door to the neighboring room, and a door leading back
     // Break out door into subclass
     room.addDoor = function(x, y) {
@@ -198,7 +255,6 @@ Pxlqst.Room = Class.extend({
 
       if (room.neighbors[direction]) {
 
-console.log('room to ',direction);
         neighbor = room.neighbors[direction];
         counterpart = neighbor.tile(counterpart.x, counterpart.y);
         counterpart.remove(counterpart.things[0]);

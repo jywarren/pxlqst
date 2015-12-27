@@ -9,14 +9,37 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
 
     // everyone gets 10 health to start with. EVERYONE
     actor.health = 10;
+    actor.interval = 500;
+
 
     // keeps x, y in bounds
     actor.confineToRoom = function(_x, _y) {
 
       if (_x < 0) _x = 0;
       if (_y < 0) _y = 0;
-      if (_x > room.tilesWide) _x = room.tilesWide;
-      if (_y > room.tilesWide) _y = room.tilesWide;
+      if (_x > actor.room.tilesWide) _x = actor.room.tilesWide;
+      if (_y > actor.room.tilesWide) _y = actor.room.tilesWide;
+
+    }
+
+
+    actor.continuously = function(activity) {
+
+      actor.activity = activity;
+
+    }
+
+
+    actor.sleep = function() {
+
+      if (actor.timer) clearInterval(actor.timer);
+
+    }
+
+
+    actor.wake = function() {
+
+      actor.timer = setInterval(actor.activity, actor.interval);
 
     }
 
@@ -29,7 +52,7 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
 
       actor.health -= strength;
 
-console.log('I was hit and lost ', strength, ', leaving me at ', actor.health);
+      console.log('I was hit and lost ', strength, ', leaving me at ', actor.health);
     
       setTimeout(function() {
     

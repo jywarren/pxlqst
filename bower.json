@@ -1,9 +1,7 @@
 {
   "name": "pxlqst",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "dependencies": {
-    "fontawesome":     "~4.2.0",
-    "bootstrap-css":   "~3",
     "jquery":          "~2.1.3"
   }
 }
