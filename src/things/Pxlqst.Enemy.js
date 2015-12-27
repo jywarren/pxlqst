@@ -10,9 +10,9 @@ Pxlqst.Enemy = Pxlqst.Actor.extend({
     this.tryHit = function(newx, newy) {
 
       // take hit
-      if (room.tile(newx, newy).has(Pxlqst.You)) {
+      if (enemy.room.tile(newx, newy).has(Pxlqst.You)) {
 
-        room.tile(newx, newy).has(Pxlqst.You).hit();
+        enemy.room.tile(newx, newy).has(Pxlqst.You).hit();
 
         return true;
 

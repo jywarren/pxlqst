@@ -60,6 +60,21 @@ Pxlqst.Room = Class.extend({
     }
 
 
+    room.things = function() {
+
+      var things = [];
+
+      room.tiles.forEach(function(tile) {
+
+        things = things.concat(tile.things);
+
+      });
+
+      return things;
+
+    }
+
+
     room.opposite = function(direction) {
 
       if (direction == 'n') return 's';
@@ -88,9 +103,9 @@ Pxlqst.Room = Class.extend({
     }
 
 
-    // shift by one pixel width towards room.destination
-    // this needs to be synchronized with neighboring room...
-    room.pan = function() {
+    // Shift by one pixel width towards room.destination;
+    // execute callback() if arrived.
+    room.pan = function(callback) {
 
       if (Math.abs(room.destination.x - room.x) > Math.abs(room.destination.y - room.y)) {
         if (room.destination.x > room.x) room.x += 1;
@@ -104,7 +119,10 @@ Pxlqst.Room = Class.extend({
       room.el.css('top',  room.y * (room.world.roomWidth / world.tilesWide));
 
       if (room.interval && room.destination.x == room.x && room.destination.y == room.y) {
+
         clearInterval(room.interval);
+        if (callback) callback();
+
       }
 
     }
@@ -120,7 +138,7 @@ Pxlqst.Room = Class.extend({
 
       room.interval = setInterval(function() {
 
-        room.pan();
+        room.pan(callback);
 
       }, 100);
 
@@ -159,9 +177,7 @@ Pxlqst.Room = Class.extend({
   
           var tile = new Pxlqst.Tile(x, y, room);
  
-var ln = room.tiles.length;
           room.tiles.push(tile);
-console.log(ln, room.tiles.length, room.id);
   
         }
   
@@ -193,6 +209,30 @@ console.log(ln, room.tiles.length, room.id);
     }
 
 
+    // activate all things
+    room.wake = function() {
+
+      room.things().forEach(function(thing) {
+
+        if (thing.wake) thing.wake();
+
+      });
+
+    }
+
+
+    // deactivate all things
+    room.sleep = function() {
+
+      room.things().forEach(function(thing) {
+
+        if (thing.sleep) thing.sleep();
+
+      });
+
+    }
+
+
     // create a door to the neighboring room, and a door leading back
     // Break out door into subclass
     room.addDoor = function(x, y) {
@@ -215,7 +255,6 @@ console.log(ln, room.tiles.length, room.id);
 
       if (room.neighbors[direction]) {
 
-console.log('room to ',direction);
         neighbor = room.neighbors[direction];
         counterpart = neighbor.tile(counterpart.x, counterpart.y);
         counterpart.remove(counterpart.things[0]);

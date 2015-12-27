@@ -20,10 +20,10 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
       if (!rat.tile().nextTo(Pxlqst.Wall)) {
 
         // run stupidly to nearest exterior room wall
-        if      (rat.x < room.tilesWide / 2) newx -= 1;
-        else if (rat.x > room.tilesWide / 2) newx += 1;
-        else if (rat.y < room.tilesWide / 2) newy -= 1;
-        else if (rat.y > room.tilesWide / 2) newy += 1;
+        if      (rat.x < rat.room.tilesWide / 2) newx -= 1;
+        else if (rat.x > rat.room.tilesWide / 2) newx += 1;
+        else if (rat.y < rat.room.tilesWide / 2) newy -= 1;
+        else if (rat.y > rat.room.tilesWide / 2) newy += 1;
 
       // rats are tentative!
       } else if (Math.random() > 0.2 || rat.running) {
@@ -43,7 +43,7 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
       rat.confineToRoom(newx, newy);
 
       // don't go through walls, or obstacles (stone for now)
-      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
+      if (!rat.room.tile(newx, newy).has(Pxlqst.Wall) && !rat.room.tile(newx, newy).has(Pxlqst.Stone)) {
 
         // try to hit You, but if not, go to newx, newy
         if (!rat.tryHit(newx, newy)) {
@@ -55,7 +55,7 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
     }
 
 
-    rat.interval = setInterval(rat.wander, 500);
+    rat.continuously(rat.wander);
 
     return rat;
 

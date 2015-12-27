@@ -129,6 +129,21 @@ Pxlqst.Room = Class.extend({
     }
 
 
+    room.things = function() {
+
+      var things = [];
+
+      room.tiles.forEach(function(tile) {
+
+        things = things.concat(tile.things);
+
+      });
+
+      return things;
+
+    }
+
+
     room.opposite = function(direction) {
 
       if (direction == 'n') return 's';
@@ -157,9 +172,9 @@ Pxlqst.Room = Class.extend({
     }
 
 
-    // shift by one pixel width towards room.destination
-    // this needs to be synchronized with neighboring room...
-    room.pan = function() {
+    // Shift by one pixel width towards room.destination;
+    // execute callback() if arrived.
+    room.pan = function(callback) {
 
       if (Math.abs(room.destination.x - room.x) > Math.abs(room.destination.y - room.y)) {
         if (room.destination.x > room.x) room.x += 1;
@@ -173,7 +188,10 @@ Pxlqst.Room = Class.extend({
       room.el.css('top',  room.y * (room.world.roomWidth / world.tilesWide));
 
       if (room.interval && room.destination.x == room.x && room.destination.y == room.y) {
+
         clearInterval(room.interval);
+        if (callback) callback();
+
       }
 
     }
@@ -189,7 +207,7 @@ Pxlqst.Room = Class.extend({
 
       room.interval = setInterval(function() {
 
-        room.pan();
+        room.pan(callback);
 
       }, 100);
 
@@ -228,9 +246,7 @@ Pxlqst.Room = Class.extend({
   
           var tile = new Pxlqst.Tile(x, y, room);
  
-var ln = room.tiles.length;
           room.tiles.push(tile);
-console.log(ln, room.tiles.length, room.id);
   
         }
   
@@ -262,6 +278,30 @@ console.log(ln, room.tiles.length, room.id);
     }
 
 
+    // activate all things
+    room.wake = function() {
+
+      room.things().forEach(function(thing) {
+
+        if (thing.wake) thing.wake();
+
+      });
+
+    }
+
+
+    // deactivate all things
+    room.sleep = function() {
+
+      room.things().forEach(function(thing) {
+
+        if (thing.sleep) thing.sleep();
+
+      });
+
+    }
+
+
     // create a door to the neighboring room, and a door leading back
     // Break out door into subclass
     room.addDoor = function(x, y) {
@@ -284,7 +324,6 @@ console.log(ln, room.tiles.length, room.id);
 
       if (room.neighbors[direction]) {
 
-console.log('room to ',direction);
         neighbor = room.neighbors[direction];
         counterpart = neighbor.tile(counterpart.x, counterpart.y);
         counterpart.remove(counterpart.things[0]);
@@ -325,7 +364,7 @@ Pxlqst.Thing = Class.extend({
 
     thing.tile = function() {
 
-      return room.tile(thing.x, thing.y);
+      return thing.room.tile(thing.x, thing.y);
 
     }
 
@@ -333,9 +372,9 @@ Pxlqst.Thing = Class.extend({
     // move to any tile, removing self from old tile
     thing.move = function(_x, _y) {
       
-          thing.tile().remove(thing);
-       
-          room.tile(_x, _y).add(thing);
+      thing.tile().remove(thing);
+      
+      thing.room.tile(_x, _y).add(thing);
 
     }
 
@@ -512,7 +551,6 @@ Pxlqst.World = Class.extend({
   init: function() {
 
     var world = this;
-    console.log('world created');
 
 
     world.resize = function() {
@@ -579,9 +617,7 @@ Pxlqst.World = Class.extend({
       world.room.y = -y;
       world.room.show();
 
-      world.room.move(0, 0, function() {
-        oldRoom.hide();
-      });
+      oldRoom.sleep();
 
       // record old position:
       var you_x = world.you.x,
@@ -596,26 +632,42 @@ Pxlqst.World = Class.extend({
       // remove You from old room:
       world.you.tile().remove(world.you);
 
-      // add to new room, in new location:
-console.log(world.room.tile(you_x, you_y), you_x, you_y);
+      // add You to new room, in new location:
       world.room.tile(you_x, you_y).add(world.you);
 
-// sleep everything from old room!
+      // adjust destination
+      world.you.destination.x = world.you.x; 
+      world.you.destination.y = world.you.y; 
 
+      // perform the move:
+      world.room.move(0, 0, function() {
 
+        oldRoom.hide();
+
+        // re-assign you.room:
+        world.you.room = world.room;
+
+        world.room.wake();
+
+        // adjust destination to new room
+        world.you.destination.x = you_x; 
+        world.you.destination.y = you_y; 
+
+      });
 
       return world.room;
 
     }
+
 
     world.room = world.addRoom();
 
     // add a "choose a profession" intro here
     world.you = world.room.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.room));
 
-    world.resize();
-
     $(window).on('resize', world.resize);
+
+    console.log('World created.');
 
     return world;
 
@@ -634,14 +686,37 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
 
     // everyone gets 10 health to start with. EVERYONE
     actor.health = 10;
+    actor.interval = 500;
+
 
     // keeps x, y in bounds
     actor.confineToRoom = function(_x, _y) {
 
       if (_x < 0) _x = 0;
       if (_y < 0) _y = 0;
-      if (_x > room.tilesWide) _x = room.tilesWide;
-      if (_y > room.tilesWide) _y = room.tilesWide;
+      if (_x > actor.room.tilesWide) _x = actor.room.tilesWide;
+      if (_y > actor.room.tilesWide) _y = actor.room.tilesWide;
+
+    }
+
+
+    actor.continuously = function(activity) {
+
+      actor.activity = activity;
+
+    }
+
+
+    actor.sleep = function() {
+
+      if (actor.timer) clearInterval(actor.timer);
+
+    }
+
+
+    actor.wake = function() {
+
+      actor.timer = setInterval(actor.activity, actor.interval);
 
     }
 
@@ -654,7 +729,7 @@ Pxlqst.Actor = Pxlqst.Thing.extend({
 
       actor.health -= strength;
 
-console.log('I was hit and lost ', strength, ', leaving me at ', actor.health);
+      console.log('I was hit and lost ', strength, ', leaving me at ', actor.health);
     
       setTimeout(function() {
     
@@ -683,9 +758,9 @@ Pxlqst.Enemy = Pxlqst.Actor.extend({
     this.tryHit = function(newx, newy) {
 
       // take hit
-      if (room.tile(newx, newy).has(Pxlqst.You)) {
+      if (enemy.room.tile(newx, newy).has(Pxlqst.You)) {
 
-        room.tile(newx, newy).has(Pxlqst.You).hit();
+        enemy.room.tile(newx, newy).has(Pxlqst.You).hit();
 
         return true;
 
@@ -711,7 +786,7 @@ Pxlqst.Item = Pxlqst.Thing.extend({
     item.take = function(_x, _y) {
 
       // user.inventory.add(item);
-      console.log('you took the item!');
+      console.log('You took the item!');
 
     }
 
@@ -761,10 +836,10 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
       if (!rat.tile().nextTo(Pxlqst.Wall)) {
 
         // run stupidly to nearest exterior room wall
-        if      (rat.x < room.tilesWide / 2) newx -= 1;
-        else if (rat.x > room.tilesWide / 2) newx += 1;
-        else if (rat.y < room.tilesWide / 2) newy -= 1;
-        else if (rat.y > room.tilesWide / 2) newy += 1;
+        if      (rat.x < rat.room.tilesWide / 2) newx -= 1;
+        else if (rat.x > rat.room.tilesWide / 2) newx += 1;
+        else if (rat.y < rat.room.tilesWide / 2) newy -= 1;
+        else if (rat.y > rat.room.tilesWide / 2) newy += 1;
 
       // rats are tentative!
       } else if (Math.random() > 0.2 || rat.running) {
@@ -784,7 +859,7 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
       rat.confineToRoom(newx, newy);
 
       // don't go through walls, or obstacles (stone for now)
-      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
+      if (!rat.room.tile(newx, newy).has(Pxlqst.Wall) && !rat.room.tile(newx, newy).has(Pxlqst.Stone)) {
 
         // try to hit You, but if not, go to newx, newy
         if (!rat.tryHit(newx, newy)) {
@@ -796,7 +871,7 @@ Pxlqst.Rat = Pxlqst.Enemy.extend({
     }
 
 
-    rat.interval = setInterval(rat.wander, 500);
+    rat.continuously(rat.wander);
 
     return rat;
 
@@ -851,7 +926,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
           else                           newy = you.y - 1;
         }
 
-        var tile = room.tile(newx, newy);
+        var tile = you.room.tile(newx, newy);
 
         // don't go through walls (do this in Actor ? but ghosts!)
         if (!tile.has(Pxlqst.Wall)) {
@@ -878,7 +953,8 @@ Pxlqst.You = Pxlqst.Actor.extend({
             } else {
 
               // you get it!
-              console.log('took', item.cssClass);
+              console.log('Took ', item.cssClass);
+
               you.take(item);
 
             }
@@ -905,7 +981,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
         if (you.x == you.destination.x && you.y == you.destination.y) {
 
-          console.log('you arrive at ', you.x, you.y);
+          console.log('You arrive at ', you.x, you.y);
           
           callback = you.destination.callback; // save the callback so we can call it
           you.destination = undefined; // but clear the dest before calling the callback
@@ -993,6 +1069,8 @@ Pxlqst.Zombie = Pxlqst.Enemy.extend({
 
     zombie.cssClass = 'zombie';
 
+    zombie.interval = 1500;
+
 
     zombie.wander = function() {
 
@@ -1004,7 +1082,7 @@ Pxlqst.Zombie = Pxlqst.Enemy.extend({
 
       zombie.confineToRoom(newx, newy);
 
-      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
+      if (!zombie.room.tile(newx, newy).has(Pxlqst.Wall) && !zombie.room.tile(newx, newy).has(Pxlqst.Stone)) {
 
         // try to hit You, but if not, go to newx, newy
         if (!zombie.tryHit(newx, newy)) {
@@ -1015,8 +1093,8 @@ Pxlqst.Zombie = Pxlqst.Enemy.extend({
  
     }
 
+    zombie.continuously(zombie.wander);
 
-    zombie.interval = setInterval(zombie.wander, 2000);
 
     return zombie;
 

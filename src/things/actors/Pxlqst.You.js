@@ -45,7 +45,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
           else                           newy = you.y - 1;
         }
 
-        var tile = room.tile(newx, newy);
+        var tile = you.room.tile(newx, newy);
 
         // don't go through walls (do this in Actor ? but ghosts!)
         if (!tile.has(Pxlqst.Wall)) {
@@ -72,7 +72,8 @@ Pxlqst.You = Pxlqst.Actor.extend({
             } else {
 
               // you get it!
-              console.log('took', item.cssClass);
+              console.log('Took ', item.cssClass);
+
               you.take(item);
 
             }
@@ -99,7 +100,7 @@ Pxlqst.You = Pxlqst.Actor.extend({
 
         if (you.x == you.destination.x && you.y == you.destination.y) {
 
-          console.log('you arrive at ', you.x, you.y);
+          console.log('You arrive at ', you.x, you.y);
           
           callback = you.destination.callback; // save the callback so we can call it
           you.destination = undefined; // but clear the dest before calling the callback

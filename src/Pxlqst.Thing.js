@@ -11,7 +11,7 @@ Pxlqst.Thing = Class.extend({
 
     thing.tile = function() {
 
-      return room.tile(thing.x, thing.y);
+      return thing.room.tile(thing.x, thing.y);
 
     }
 
@@ -19,9 +19,9 @@ Pxlqst.Thing = Class.extend({
     // move to any tile, removing self from old tile
     thing.move = function(_x, _y) {
       
-          thing.tile().remove(thing);
-       
-          room.tile(_x, _y).add(thing);
+      thing.tile().remove(thing);
+      
+      thing.room.tile(_x, _y).add(thing);
 
     }
 

@@ -11,6 +11,8 @@ Pxlqst.Zombie = Pxlqst.Enemy.extend({
 
     zombie.cssClass = 'zombie';
 
+    zombie.interval = 1500;
+
 
     zombie.wander = function() {
 
@@ -22,7 +24,7 @@ Pxlqst.Zombie = Pxlqst.Enemy.extend({
 
       zombie.confineToRoom(newx, newy);
 
-      if (!room.tile(newx, newy).has(Pxlqst.Wall) && !room.tile(newx, newy).has(Pxlqst.Stone)) {
+      if (!zombie.room.tile(newx, newy).has(Pxlqst.Wall) && !zombie.room.tile(newx, newy).has(Pxlqst.Stone)) {
 
         // try to hit You, but if not, go to newx, newy
         if (!zombie.tryHit(newx, newy)) {
@@ -33,8 +35,8 @@ Pxlqst.Zombie = Pxlqst.Enemy.extend({
  
     }
 
+    zombie.continuously(zombie.wander);
 
-    zombie.interval = setInterval(zombie.wander, 2000);
 
     return zombie;
 

@@ -7,7 +7,6 @@ Pxlqst.World = Class.extend({
   init: function() {
 
     var world = this;
-    console.log('world created');
 
 
     world.resize = function() {
@@ -74,9 +73,7 @@ Pxlqst.World = Class.extend({
       world.room.y = -y;
       world.room.show();
 
-      world.room.move(0, 0, function() {
-        oldRoom.hide();
-      });
+      oldRoom.sleep();
 
       // record old position:
       var you_x = world.you.x,
@@ -91,26 +88,42 @@ Pxlqst.World = Class.extend({
       // remove You from old room:
       world.you.tile().remove(world.you);
 
-      // add to new room, in new location:
-console.log(world.room.tile(you_x, you_y), you_x, you_y);
+      // add You to new room, in new location:
       world.room.tile(you_x, you_y).add(world.you);
 
-// sleep everything from old room!
+      // adjust destination
+      world.you.destination.x = world.you.x; 
+      world.you.destination.y = world.you.y; 
 
+      // perform the move:
+      world.room.move(0, 0, function() {
 
+        oldRoom.hide();
+
+        // re-assign you.room:
+        world.you.room = world.room;
+
+        world.room.wake();
+
+        // adjust destination to new room
+        world.you.destination.x = you_x; 
+        world.you.destination.y = you_y; 
+
+      });
 
       return world.room;
 
     }
+
 
     world.room = world.addRoom();
 
     // add a "choose a profession" intro here
     world.you = world.room.tile(8, 8).add(new Pxlqst.You(8, 8, 'thief', world.room));
 
-    world.resize();
-
     $(window).on('resize', world.resize);
+
+    console.log('World created.');
 
     return world;
 
