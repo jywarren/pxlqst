@@ -10,6 +10,8 @@ Try it at http://pxlqst.com
 1. No objects larger than 1x1 pixels
 2. No text
 
+![demo.png]https://github.com/jywarren/pxlqst/blob/master/demo.png?raw=true)
+
 ****
 
 ## Setup
@@ -26,6 +28,8 @@ Try it at http://pxlqst.com
 ## Test adventure
 
 Pxlqst comes with a [test suite](https://github.com/jywarren/pxlqst/issues/4) using [Jasmine](https://jasmine.github.io) which lead the tester on an adventure through the dungeons. To run this test adventure, visit http://pxlqst.com/test or when you're running it locally, open test.html in a browser.
+
+![test-adventure.png]https://github.com/jywarren/pxlqst/blob/master/demo.png?raw=true)
 
 ****
 
